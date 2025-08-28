@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import ReactDOM from 'react-dom/client';
 import { AuthProvider, AuthContext } from './services/auth';
+import { NotificationProvider } from './contexts/NotificationContext';
 import MainApp from './MainApp';
 import LoginPage from './components/UserLogin';
 import AdminDashboard from './components/AdminDashboard';
@@ -24,7 +25,9 @@ const AppRouter: React.FC = () => {
 const AppContainer: React.FC = () => {
     return (
         <AuthProvider>
-            <AppRouter />
+            <NotificationProvider>
+                <AppRouter />
+            </NotificationProvider>
         </AuthProvider>
     );
 };

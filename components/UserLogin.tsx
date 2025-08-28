@@ -1,35 +1,33 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../services/auth';
+import { useNotification } from '../contexts/NotificationContext';
 
 const LoginPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'user' | 'admin'>('user');
     const [token, setToken] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
     const { login, adminLogin } = useContext(AuthContext);
+    const { addToast } = useNotification();
 
     const handleUserSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
         const success = login(token);
         if (!success) {
-            setError('Token tidak valid atau sudah kedaluwarsa.');
+            addToast({type: 'error', title: 'Login Gagal', message: 'Token tidak valid, sudah digunakan, atau kedaluwarsa.'});
         }
     };
 
     const handleAdminSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
         const success = adminLogin(email, password);
         if (!success) {
-            setError('Email atau password salah.');
+             addToast({type: 'error', title: 'Login Admin Gagal', message: 'Email atau password salah.'});
         }
     };
 
     const switchTab = (tab: 'user' | 'admin') => {
         setActiveTab(tab);
-        setError('');
         setToken('');
         setEmail('');
         setPassword('');
@@ -80,8 +78,6 @@ const LoginPage: React.FC = () => {
                                     />
                                 </div>
                             </div>
-
-                            {error && <p className="text-sm text-red-600">{error}</p>}
 
                             <div>
                                 <button
@@ -137,8 +133,6 @@ const LoginPage: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                            
-                            {error && <p className="text-sm text-red-600">{error}</p>}
 
                             <div>
                                 <button
