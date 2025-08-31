@@ -1,17 +1,19 @@
-import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
+
+
+import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/genai";
+import { ApiKeyStatus } from "../types";
 
 /**
  * Generates an image from a text prompt, optionally using a reference image, supporting multiple AI models.
- * @param prompt The detailed text prompt for image generation.
  * @param apiKey The API key to use for this request.
+ * @param prompt The detailed text prompt for image generation.
  * @param model The AI model to use ('gemini-2.5-flash-image-preview' or 'imagen-4.0-generate-001').
  * @param imageBase64 The base64 encoded reference image string (optional, only for Gemini).
  * @param mimeType The MIME type of the reference image (optional, only for Gemini).
  * @returns A promise that resolves to a base64 encoded image URL.
  */
-export async function generateImage(prompt: string, apiKey: string, model: string, imageBase64?: string, mimeType?: string): Promise<string> {
+export async function generateImage(apiKey: string, prompt: string, model: string, imageBase64?: string, mimeType?: string): Promise<string> {
     try {
-        if (!apiKey) throw new Error("API Key is missing.");
         const ai = new GoogleGenAI({ apiKey });
 
         if (model === 'imagen-4.0-generate-001') {
@@ -77,13 +79,12 @@ export async function generateImage(prompt: string, apiKey: string, model: strin
 
 /**
  * Generates a text response from a text prompt.
- * @param prompt The text prompt for text generation.
  * @param apiKey The API key to use for this request.
+ * @param prompt The text prompt for text generation.
  * @returns A promise that resolves to the generated text string.
  */
-export async function generateText(prompt: string, apiKey: string): Promise<string> {
+export async function generateText(apiKey: string, prompt: string): Promise<string> {
     try {
-        if (!apiKey) throw new Error("API Key is missing.");
         const ai = new GoogleGenAI({ apiKey });
 
         const response = await ai.models.generateContent({
@@ -104,5 +105,119 @@ export async function generateText(prompt: string, apiKey: string): Promise<stri
     } catch (error) {
         console.error("Error generating text with AI API:", error);
         throw new Error(`Failed to generate text: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+
+/**
+ * Creates a detailed, consistent physical description of a couple (faces, hair, clothing) to be reused across multiple images.
+ * @param apiKey The API key to use for this request.
+ * @param userPrompt The user's initial, basic description.
+ * @returns A promise that resolves to a detailed and consistent couple description string.
+ */
+export async function generateConsistentCoupleDescription(apiKey: string, userPrompt: string): Promise<string> {
+    try {
+        const ai = new GoogleGenAI({ apiKey });
+        const prompt = `From the user's prompt, create a detailed, consistent physical description of a young Indonesian couple.
+**Crucially, ensure authentic Indonesian features (skin tone, hair, facial structure). Do not describe Caucasian features.**
+Focus on specific facial features, hairstyle, and a complete clothing description.
+Output a single, cohesive paragraph for AI image generation.
+User's prompt: "${userPrompt}"`;
+        
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+
+        const text = response.text;
+        if (!text) {
+            throw new Error("API returned an empty text response while creating couple description.");
+        }
+        return text.trim();
+
+    } catch (error) {
+        console.error("Error generating consistent couple description:", error);
+        throw new Error(`Failed to generate couple description: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+
+/**
+ * Generates a batch of creative, location-specific scenarios for a photoshoot.
+ * @param apiKey The API key to use for this request.
+ * @param locationTheme The theme of the photoshoot location (e.g., "Bromo", "Paris").
+ * @param count The number of unique scenarios to generate.
+ * @returns A promise that resolves to an array of scenario objects.
+ */
+export async function generateLocationBasedScenarios(apiKey: string, locationTheme: string, count: number): Promise<{ scene: string; emotion: string }[]> {
+    const ai = new GoogleGenAI({ apiKey });
+    const prompt = `Generate ${count} unique, romantic photo scenarios specific to a photoshoot in "${locationTheme}".
+For each, describe a physical action ('scene') and the core 'emotion'. Avoid generic ideas.
+Return as a JSON array of objects with "scene" and "emotion" keys.
+Example for Bromo: [{ "scene": "Couple huddles in a tenun blanket, watching the sunrise over the crater.", "emotion": "Shared awe and intimacy." }]`;
+
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        scene: {
+                            type: Type.STRING,
+                            description: 'A specific, vivid action or story moment at the location.',
+                        },
+                        emotion: {
+                            type: Type.STRING,
+                            description: 'The core emotion captured in that moment.',
+                        },
+                    },
+                    required: ["scene", "emotion"],
+                },
+            },
+        },
+    });
+
+    let jsonStr = response.text.trim();
+    const parsed = JSON.parse(jsonStr);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+        throw new Error("Generated scenarios are not in the expected format or are empty.");
+    }
+    return parsed;
+}
+
+/**
+ * Validates a single API key by making a simple, low-cost text generation request.
+ * Differentiates between invalid keys and keys that have reached their rate limit.
+ * @param apiKey The API key to validate.
+ * @returns A promise that resolves to an ApiKeyStatus: 'active', 'invalid', or 'exhausted'.
+ */
+export async function validateApiKey(apiKey: string): Promise<ApiKeyStatus> {
+    if (!apiKey || apiKey.trim() === '') {
+        return 'invalid';
+    }
+    try {
+        const ai = new GoogleGenAI({ apiKey });
+        // Use a very minimal request to validate
+        await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: 'hi',
+            config: { thinkingConfig: { thinkingBudget: 0 } }
+        });
+        return 'active';
+    } catch (error) {
+        const errorMessage = (error as Error).message || '';
+        console.error(`API key validation failed for key ending in ...${apiKey.slice(-4)}: ${errorMessage}`);
+        
+        if (errorMessage.includes('API key not valid')) {
+            return 'invalid';
+        }
+        if (errorMessage.includes('429') || errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('rate limit')) {
+            return 'exhausted';
+        }
+        
+        // Treat other errors (network, etc.) as invalid for simplicity in the UI
+        return 'invalid';
     }
 }

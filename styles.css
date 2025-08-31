@@ -4,14 +4,9 @@
 
 body { 
     font-family: 'Plus Jakarta Sans', sans-serif; 
-    background-color: #f1f5f9; /* slate-100 */
+    background-color: #f8fafc; /* slate-50 */
+    overflow: hidden; /* Mencegah scroll di body */
 }
-
-/* Prevent body scrolling ONLY when the main application layout is visible */
-body.main-app-visible {
-    overflow: hidden;
-}
-
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; } /* slate-100 */
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; } /* slate-400 */
@@ -27,82 +22,42 @@ body.main-app-visible {
 }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* --- New Modal Styles --- */
+/* Modal Styles */
 .modal-backdrop {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(15, 23, 42, 0.5); /* slate-900 with alpha */
     display: flex; justify-content: center; align-items: center;
-    z-index: 1050; opacity: 0; visibility: hidden;
+    z-index: 1000; opacity: 0; visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 .modal-backdrop.show { opacity: 1; visibility: visible; }
 .modal-content {
-    background: white; 
-    border-radius: 1rem; /* rounded-2xl */
+    background: white; padding: 2rem; border-radius: 0.75rem; /* rounded-xl */
     transform: scale(0.95); transition: transform 0.3s ease;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    width: 100%;
-    max-width: 28rem; /* max-w-md */
-    margin: 1rem;
 }
 .modal-backdrop.show .modal-content { transform: scale(1); }
-
-/* --- Toast Notification Styles --- */
-.toast-container {
-    position: fixed;
-    top: 1.5rem;
-    right: 1.5rem;
-    z-index: 1100;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    width: 100%;
-    max-width: 24rem; /* max-w-sm */
-}
-@keyframes toast-in {
-    from { opacity: 0; transform: translateX(100%); }
-    to { opacity: 1; transform: translateX(0); }
-}
-@keyframes toast-out {
-    from { opacity: 1; transform: translateX(0); }
-    to { opacity: 0; transform: translateX(100%); }
-}
-.toast {
-    animation: toast-in 0.3s ease forwards;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    border-radius: 0.5rem; /* rounded-lg */
-    padding: 1rem;
-    border-width: 1px;
-    display: flex;
-    align-items: flex-start;
-}
-.toast.exiting {
-    animation: toast-out 0.3s ease forwards;
-}
-
 
 /* Lightbox Specific Styles */
 #lightbox {
     background-color: rgba(15, 23, 42, 0.85); /* slate-900 with alpha */
-    padding: 2rem;
     cursor: pointer;
 }
 
 #lightbox-image {
-    max-width: 90vw;
-    max-height: 90vh;
+    max-width: 100vw;
+    max-height: 100vh;
     width: auto;
     height: auto;
     object-fit: contain;
-    border-radius: 0.75rem; /* rounded-xl */
+    border-radius: 0;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     cursor: default;
 }
 
 .close-lightbox {
     position: absolute;
-    top: 2rem;
-    right: 2rem;
+    top: 1rem;
+    right: 1rem;
     color: white;
     font-size: 2rem;
     font-weight: bold;
@@ -191,18 +146,4 @@ body.main-app-visible {
 }
 .selected-negative-tag button:hover {
     background: rgba(59, 130, 246, 0.1); /* blue-500 with alpha */
-}
-
-/* API Key Textarea Masking */
-.textarea-masked {
-  -webkit-text-security: disc;
-  text-security: disc;
-}
-
-/* Fix for MainApp scrollbars after auth implementation */
-#main-app-layout {
-    height: 100vh;
-}
-#main-app-layout > aside, #main-app-layout > main {
-    height: 100vh;
 }
