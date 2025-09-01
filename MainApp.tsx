@@ -444,4 +444,28 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
         const content = await zip.generateAsync({ type: "blob" });
         saveAs(content, generateRandomFilename('prewedding', 'zip'));
     };
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Your JSX content would go here */}
+            <div className="container mx-auto p-4">
+                <h1 className="text-2xl font-bold mb-4">AI Photographer</h1>
+                {showDebugPanel && (
+                    <ApiKeyDebug 
+                        userApiKeys={userApiKeys}
+                        onClose={() => setShowDebugPanel(false)}
+                    />
+                )}
+                <button 
+                    onClick={() => setShowDebugPanel(true)}
+                    className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                    Debug API
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default MainApp;
 };
