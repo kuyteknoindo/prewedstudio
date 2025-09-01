@@ -593,14 +593,10 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                 )}
                 <button 
                     onClick={() => setShowDebugPanel(true)}
-                    className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    className="w-full px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm"
                 >
                     Debug API
                 </button>
-            </div>
-        </div>
-    );
-};
 
                         {/* Settings */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -625,4 +621,209 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                         ))}
                                     </select>
                                 </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        Jumlah Foto ({imageCount})
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="20"
+                                        value={imageCount}
+                                        onChange={(e) => setImageCount(parseInt(e.target.value))}
+                                        className="w-full"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        Jeda Antar Foto ({delay}s)
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="30"
+                                        value={delay}
+                                        onChange={(e) => setDelay(parseInt(e.target.value))}
+                                        className="w-full"
+                                    />
+                                </div>
+
+                                {activeTab === 'prompt' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                            Model AI
+                                        </label>
+                                        <select
+                                            value={imageModel}
+                                            onChange={(e) => setImageModel(e.target.value)}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                            <option value="gemini-2.5-flash-image-preview">Gemini 2.5 Flash (Cepat)</option>
+                                            <option value="imagen-3.0-generate-001">Imagen 3.0 (Kualitas Tinggi)</option>
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Generate Button */}
+                            <div className="mt-6 pt-6 border-t border-slate-200">
+                                {!isLoading ? (
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={() => runGeneration(false)}
+                                            className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                        >
+                                            🎯 Mulai Sesi Foto
+                                        </button>
+                                        {sessionFinished && generatedImages.length > 0 && (
+                                            <button
+                                                onClick={() => runGeneration(true)}
+                                                className="w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                            >
+                                                ➕ Lanjutkan ({imageCount} foto lagi)
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={handleStop}
+                                        className="w-full py-3 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                                    >
+                                        ⏹️ Hentikan
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Panel - Results */}
+                    <div className="lg:col-span-2">
+                        {/* Status */}
+                        {(isLoading || statusText) && (
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+                                <div className="flex items-center space-x-3">
+                                    {isLoading && (
+                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                                    )}
+                                    <span className="text-slate-700">{statusText}</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Generated Images */}
+                        {generatedImages.length > 0 && (
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-semibold text-slate-900">
+                                        Hasil Foto ({generatedImages.length})
+                                    </h3>
+                                    <button
+                                        onClick={() => setModals(prev => ({...prev, download: true}))}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                    >
+                                        📥 Download Semua
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {generatedImages.map((image) => (
+                                        <div key={image.id} className="relative group">
+                                            <img
+                                                src={image.url}
+                                                alt="Generated"
+                                                className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                                onClick={() => setModals(prev => ({...prev, lightbox: image.url}))}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Empty State */}
+                        {generatedImages.length === 0 && !isLoading && (
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+                                <div className="text-6xl mb-4">📸</div>
+                                <h3 className="text-xl font-semibold text-slate-900 mb-2">Siap untuk Sesi Foto?</h3>
+                                <p className="text-slate-600">
+                                    Atur deskripsi pasangan dan lokasi, lalu klik "Mulai Sesi Foto" untuk memulai.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Modals */}
+            {modals.error && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl p-6 max-w-md w-full">
+                        <h3 className="text-lg font-semibold text-red-600 mb-2">Error</h3>
+                        <p className="text-slate-700 mb-4">{modals.error}</p>
+                        <button
+                            onClick={() => setModals(prev => ({...prev, error: null}))}
+                            className="w-full py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {modals.download && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl p-6 max-w-md w-full">
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Download Foto</h3>
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => handleDownloadZip()}
+                                className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Download Original
+                            </button>
+                            <button
+                                onClick={() => handleDownloadZip(3/4)}
+                                className="w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                                Download 3:4 (Portrait)
+                            </button>
+                            <button
+                                onClick={() => handleDownloadZip(16/9)}
+                                className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                            >
+                                Download 16:9 (Landscape)
+                            </button>
+                            <button
+                                onClick={() => setModals(prev => ({...prev, download: false}))}
+                                className="w-full py-2 px-4 bg-slate-300 text-slate-700 rounded-lg hover:bg-slate-400 transition-colors"
+                            >
+                                Batal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {modals.lightbox && (
+                <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+                    <div className="relative max-w-4xl max-h-full">
+                        <img
+                            src={modals.lightbox}
+                            alt="Full size"
+                            className="max-w-full max-h-full object-contain rounded-lg"
+                        />
+                        <button
+                            onClick={() => setModals(prev => ({...prev, lightbox: null}))}
+                            className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors"
+                        >
+                            ×
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 export default MainApp;
