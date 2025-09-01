@@ -91,8 +91,20 @@ const MainApp: React.FC = () => {
         // Combine active and unvalidated keys, prioritizing active ones for use.
         const availableKeys = [
             ...userApiKeys.filter(k => k.status === 'active'),
-            ...userApiKeys.filter(k => k.status === 'unvalidated')
+            ...userApiKeys.filter(k => k.status === 'unvalidated'),
+            ...userApiKeys.filter(k => k.status === 'exhausted')
         ];
+        
+        // Also check for environment API key
+        const envApiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
+        if (envApiKey && availableKeys.length === 0) {
+            try {
+                return await apiFunction(envApiKey);
+            } catch (error) {
+                console.warn('Environment API key failed:', error);
+            }
+        }
+        
         try {
 
         if (availableKeys.length > 0) {
@@ -983,3 +995,5 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
         </div>
     );
 };
+
+export default MainApp;
