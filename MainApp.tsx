@@ -594,19 +594,7 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                 </div>
                             )}
 
-                                <h3 className="text-lg font-semibold text-red-600 mb-2">
-                                    {modals.error.includes('quota') ? 'Quota Limit Reached' : 'Error'}
-                                </h3>
-                                <p className="text-gray-700 mb-4">{modals.error}</p>
-                                {modals.error.includes('quota') && (
-                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                                        <p className="text-sm text-yellow-800">
-                                            <strong>Solusi:</strong><br/>
-                                            1. Tambahkan API key baru melalui tombol "Manage API Keys"<br/>
-                                            2. Atau tunggu 24 jam untuk quota reset
-                                        </p>
-                                    </div>
-                                )}
+                            <div>
                                 <button
                                     onClick={() => setIsKeyTutorialOpen(true)}
                                     className="text-blue-600 hover:text-blue-700 text-sm underline"
@@ -940,8 +928,19 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
             {modals.error && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl p-6 max-w-md w-full">
-                        <h3 className="text-lg font-semibold text-red-600 mb-2">Error</h3>
-                        <p className="text-slate-700 mb-4">{modals.error}</p>
+                        <h3 className="text-lg font-semibold text-red-600 mb-2">
+                            {modals.error.includes('quota') ? 'Quota Limit Reached' : 'Error'}
+                        </h3>
+                        <p className="text-gray-700 mb-4">{modals.error}</p>
+                        {modals.error.includes('quota') && (
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                                <p className="text-sm text-yellow-800">
+                                    <strong>Solusi:</strong><br/>
+                                    1. Tambahkan API key baru melalui tombol "Manage API Keys"<br/>
+                                    2. Atau tunggu 24 jam untuk quota reset
+                                </p>
+                            </div>
+                        )}
                         <button
                             onClick={() => setModals(prev => ({...prev, error: null}))}
                             className="w-full py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
