@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { validateApiKey } from '../services/geminiService';
 import { ApiKey, ApiKeyStatus } from '../types';
 
-const ApiKeyDebug: React.FC = () => {
+interface ApiKeyDebugProps {
+    userApiKeys: ApiKey[];
+    onClose: () => void;
+}
+
+const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
     const [debugInfo, setDebugInfo] = useState<any>(null);
     const [testResult, setTestResult] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
@@ -10,18 +15,19 @@ const ApiKeyDebug: React.FC = () => {
 
     const checkStoredApiKeys = () => {
         try {
-            const storedKeys = localStorage.getItem('gemini_api_keys');
+            const storedKeys = localStorage.getItem('ai_photographer_api_keys');
             const envKey = (window as any).process?.env?.GEMINI_API_KEY || (window as any).process?.env?.API_KEY;
             
             const info = {
                 localStorageKeys: storedKeys ? JSON.parse(storedKeys) : null,
                 environmentKey: envKey ? 'Set' : 'Not set',
+                currentUserKeys: userApiKeys,
                 timestamp: new Date().toLocaleString()
             };
             
             setDebugInfo(info);
         } catch (error) {
-            setDebugInfo({ error: error.message });
+            setDebugInfo({ error: (error as Error).message });
         }
     };
 
@@ -31,16 +37,44 @@ const ApiKeyDebug: React.FC = () => {
         
         try {
             const status = await validateApiKey(apiKey);
-            setTestResult(`API Key Status: ${status}`);
+            setTestResult(`API Key Status: ${status.toUpperCase()}`);
+            
+            if (status === 'active') {
+                setTestResult(prev => prev + '\n\n✅ API Key berfungsi! Klik "Add to App" untuk menambahkan ke aplikasi.');
+            }
         } catch (error) {
-            setTestResult(`Test failed: ${error.message}`);
+            setTestResult(`Test failed: ${(error as Error).message}`);
         } finally {
             setIsLoading(false);
         }
     };
 
+    const addApiKeyToApp = () => {
+        if (!testApiKeyInput.trim()) {
+            setTestResult('Masukkan API key terlebih dahulu');
+            return;
+        }
+
+        const newApiKey: ApiKey = {
+            id: `key_${Date.now()}`,
+            value: testApiKeyInput.trim(),
+            masked: `${testApiKeyInput.slice(0, 4)}...${testApiKeyInput.slice(-4)}`,
+            status: 'unvalidated'
+        };
+
+        const currentKeys = JSON.parse(localStorage.getItem('ai_photographer_api_keys') || '[]');
+        const updatedKeys = [...currentKeys, newApiKey];
+        localStorage.setItem('ai_photographer_api_keys', JSON.stringify(updatedKeys));
+        
+        setTestResult('✅ API Key berhasil ditambahkan ke aplikasi! Silakan tutup panel debug dan coba generate foto.');
+        setTestApiKeyInput('');
+        
+        // Refresh debug info
+        checkStoredApiKeys();
+    };
+
     const testAllStoredKeys = async () => {
-        if (!debugInfo?.localStorageKeys) {
+        if (!userApiKeys || userApiKeys.length === 0) {
             setTestResult('No stored API keys to test');
             return;
         }
@@ -48,12 +82,12 @@ const ApiKeyDebug: React.FC = () => {
         setIsLoading(true);
         const results = [];
         
-        for (const key of debugInfo.localStorageKeys) {
+        for (const key of userApiKeys) {
             try {
                 const status = await validateApiKey(key.value);
-                results.push(`Key ${key.id.slice(-4)}: ${status}`);
+                results.push(`Key ${key.masked}: ${status.toUpperCase()}`);
             } catch (error) {
-                results.push(`Key ${key.id.slice(-4)}: error - ${error.message}`);
+                results.push(`Key ${key.masked}: error - ${(error as Error).message}`);
             }
         }
         
@@ -66,8 +100,17 @@ const ApiKeyDebug: React.FC = () => {
     }, []);
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">API Key Debug Information</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto max-h-[80vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">API Key Debug Information</h2>
+                    <button 
+                        onClick={onClose}
+                        className="text-gray-500 hover:text-gray-700 text-2xl"
+                    >
+                        ×
+                    </button>
+                </div>
             
             <div className="space-y-4">
                 <button 
@@ -106,6 +149,13 @@ const ApiKeyDebug: React.FC = () => {
                             >
                                 {isLoading ? 'Testing...' : 'Test Key'}
                             </button>
+                            <button 
+                                onClick={addApiKeyToApp}
+                                disabled={!testApiKeyInput.trim()}
+                                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50"
+                            >
+                                Add to App
+                            </button>
                         </div>
                     </div>
 
@@ -134,6 +184,7 @@ const ApiKeyDebug: React.FC = () => {
                         <li>Terlalu banyak request dalam waktu singkat</li>
                     </ul>
                 </div>
+            </div>
             </div>
         </div>
     );
