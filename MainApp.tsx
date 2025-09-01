@@ -6,6 +6,7 @@ import ApiKeyDebug from './components/ApiKeyDebug';
 import { generateImage, generateText, generateConsistentCoupleDescription, generateLocationBasedScenarios, validateApiKey } from './services/geminiService';
 import { shuffleArray, generateRandomFilename, cropImageToAspectRatio } from './utils';
 import * as D from './creativeData';
+import { GoogleGenAI } from '@google/genai';
 
 const defaultInitialPrompt = `A hyper-realistic, cinematic prewedding photograph of a young Indonesian couple. The woman, wearing a simple pashmina hijab, a long cotton tunic, and a pastel-colored pleated skirt. The man wears a comfortable flannel shirt over a white t-shirt and khaki-colored chino trousers. They are captured in a candid, stolen moment from afar, sharing a quiet moment of shared understanding.`;
 
