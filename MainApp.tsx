@@ -442,4 +442,4 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
         }
         
         const content = await zip.generateAsync({ type: "blob" });
-        saveAs(content, generateRandomFilename('prewedding
+        saveAs(content, generateRandomFilename('prewedding', 'zip'));
