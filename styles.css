@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 body { 
     font-family: 'Plus Jakarta Sans', sans-serif; 
@@ -12,15 +12,54 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; } /* slate-400 */
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; } /* slate-500 */
 .aspect-3-5 { aspect-ratio: 3 / 5; }
+
+/* Custom Camera Lens Loader */
 .loader {
-    border: 4px solid #e2e8f0; /* slate-200 */
-    border-top: 4px solid #3b82f6; /* blue-500 */
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
+    position: relative;
+    background: #cbd5e1; /* slate-300 */
+    box-shadow: inset 0 3px 6px rgba(15, 23, 42, 0.2);
+    overflow: hidden;
 }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.loader::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), transparent 30%);
+    animation: lens-glint 2s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+    opacity: 0;
+}
+
+.loader::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #0f172a; /* slate-900 */
+    box-shadow: 0 0 0 4px #94a3b8; /* slate-400 */
+    animation: aperture-pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes lens-glint {
+    0% { transform: rotate(0deg) scale(2); }
+    50% { opacity: 1; }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes aperture-pulse {
+    from { transform: translate(-50%, -50%) scale(1); }
+    to { transform: translate(-50%, -50%) scale(0.6); }
+}
 
 /* Modal Styles */
 .modal-backdrop {

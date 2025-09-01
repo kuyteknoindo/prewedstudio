@@ -1,6 +1,9 @@
 
 
 
+
+
+
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import saveAs from 'file-saver';
 import JSZip from 'jszip';
@@ -80,7 +83,6 @@ const MainApp: React.FC = () => {
     const [sessionFinished, setSessionFinished] = useState(false);
     
     const isGenerationRunningRef = useRef(false);
-    const apiKeyIndexRef = useRef(0);
     const sessionReferenceImageRef = useRef<ReferenceFile | null>(null);
 
     const adminApiKeyAvailable = !!process.env.API_KEY;
@@ -90,37 +92,61 @@ const MainApp: React.FC = () => {
     }, []);
 
     const performApiCall = async <T,>(apiFunction: (apiKey: string) => Promise<T>): Promise<T> => {
-        // Priority 1: Use User's Active API Keys
-        const activeUserKeys = userApiKeys.filter(k => k.status === 'active');
-        if (activeUserKeys.length > 0) {
-            let attempts = activeUserKeys.length;
-            while (attempts > 0) {
-                const keyToUse = activeUserKeys[apiKeyIndexRef.current % activeUserKeys.length];
+        // Combine active and unvalidated keys, prioritizing active ones for use.
+        const availableKeys = [
+            ...userApiKeys.filter(k => k.status === 'active'),
+            ...userApiKeys.filter(k => k.status === 'unvalidated')
+        ];
+
+        if (availableKeys.length > 0) {
+            for (const keyToTry of availableKeys) {
                 try {
-                    return await apiFunction(keyToUse.value); // Success!
-                } catch (error) {
-                    const e = error as Error;
-                    if (e.message.includes('429') || e.message.includes('RESOURCE_EXHAUSTED') || e.message.includes('rate limit')) {
-                        console.warn(`User API key ${keyToUse.masked} exhausted. Trying next key.`);
+                    const result = await apiFunction(keyToTry.value);
+                    
+                    // If the call was successful and the key was unvalidated, update its status.
+                    if (keyToTry.status === 'unvalidated') {
                         setUserApiKeys(prevKeys => {
-                            const newKeys = [...prevKeys];
-                            const keyIndex = newKeys.findIndex(k => k.id === keyToUse.id);
-                            if (keyIndex !== -1) {
-                                newKeys[keyIndex].status = 'exhausted';
-                                storeApiKeys(newKeys);
-                            }
+                            // FIX: Cast status to ApiKeyStatus to prevent TypeScript from widening the type to 'string'.
+                            const newKeys = prevKeys.map(k => 
+                                k.id === keyToTry.id ? { ...k, status: 'active' as ApiKeyStatus } : k
+                            );
+                            storeApiKeys(newKeys);
                             return newKeys;
                         });
-                        apiKeyIndexRef.current++;
-                        attempts--;
-                    } else {
-                        throw error; // A different kind of error, fail fast.
                     }
+                    
+                    return result; // Success, exit the function.
+                } catch (error) {
+                    const e = error as Error;
+                    const errorMessage = e.message || '';
+
+                    // Automatically update key status based on specific API errors.
+                    if (errorMessage.includes('API key not valid')) {
+                        console.warn(`API key ${keyToTry.masked} is invalid.`);
+                        setUserApiKeys(prevKeys => {
+                            // FIX: Cast status to ApiKeyStatus to prevent TypeScript from widening the type to 'string'.
+                            const newKeys = prevKeys.map(k => k.id === keyToTry.id ? { ...k, status: 'invalid' as ApiKeyStatus } : k);
+                            storeApiKeys(newKeys);
+                            return newKeys;
+                        });
+                    } else if (errorMessage.includes('429') || errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('rate limit')) {
+                        console.warn(`API key ${keyToTry.masked} is exhausted.`);
+                         setUserApiKeys(prevKeys => {
+                            // FIX: Cast status to ApiKeyStatus to prevent TypeScript from widening the type to 'string'.
+                            const newKeys = prevKeys.map(k => k.id === keyToTry.id ? { ...k, status: 'exhausted' as ApiKeyStatus } : k);
+                            storeApiKeys(newKeys);
+                            return newKeys;
+                        });
+                    } else {
+                        // For other errors (e.g., network), fail fast without changing key status.
+                        throw error;
+                    }
+                    // Continue to the next key if the current one failed due to being invalid or exhausted.
                 }
             }
         }
 
-        // Priority 2: Use Admin Key if available
+        // Priority 2: Fallback to Admin Key if available and all user keys failed.
         if (adminApiKeyAvailable && process.env.API_KEY) {
             try {
                 return await apiFunction(process.env.API_KEY);
@@ -130,7 +156,7 @@ const MainApp: React.FC = () => {
             }
         }
 
-        // Out of options
+        // If all keys (user and admin) have failed or none are available.
         setIsApiModalOpen(true);
         throw new Error("Tidak ada kunci API yang aktif. Silakan tambahkan kunci Anda sendiri.");
     };
@@ -271,7 +297,6 @@ const MainApp: React.FC = () => {
     
         isGenerationRunningRef.current = true;
         setIsLoading(true);
-        apiKeyIndexRef.current = 0;
     
         if (!isContinuation) {
             setGeneratedImages([]);

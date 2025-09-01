@@ -213,7 +213,7 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyStatus> {
         if (errorMessage.includes('API key not valid')) {
             return 'invalid';
         }
-        if (errorMessage.includes('429') || errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('rate limit') || errorMessage.includes('exceeded your current quota')) {
+        if (errorMessage.includes('429') || errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('rate limit')) {
             return 'exhausted';
         }
         
