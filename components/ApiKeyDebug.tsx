@@ -6,6 +6,7 @@ const ApiKeyDebug: React.FC = () => {
     const [debugInfo, setDebugInfo] = useState<any>(null);
     const [testResult, setTestResult] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
+    const [testApiKeyInput, setTestApiKeyInput] = useState('');
 
     const checkStoredApiKeys = () => {
         try {
@@ -86,6 +87,28 @@ const ApiKeyDebug: React.FC = () => {
                 )}
 
                 <div className="space-y-2">
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                            Test API Key:
+                        </label>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={testApiKeyInput}
+                                onChange={(e) => setTestApiKeyInput(e.target.value)}
+                                placeholder="Masukkan API key untuk ditest..."
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <button 
+                                onClick={() => testApiKey(testApiKeyInput)}
+                                disabled={isLoading || !testApiKeyInput.trim()}
+                                className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 disabled:opacity-50"
+                            >
+                                {isLoading ? 'Testing...' : 'Test Key'}
+                            </button>
+                        </div>
+                    </div>
+
                     <button 
                         onClick={testAllStoredKeys}
                         disabled={isLoading}
