@@ -983,5 +983,3 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
         </div>
     );
 };
-
-export default MainApp;
