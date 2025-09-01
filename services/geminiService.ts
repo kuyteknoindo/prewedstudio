@@ -199,25 +199,40 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyStatus> {
     }
     try {
         const ai = new GoogleGenAI({ apiKey });
-        // Use a very minimal request to validate
-        await ai.models.generateContent({
+        
+        // Use the most minimal request possible to validate
+        const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: 'hi',
-            config: { thinkingConfig: { thinkingBudget: 0 } }
+            contents: 'test',
+            config: {
+                maxOutputTokens: 1,
+                temperature: 0
+            }
         });
+        
+        // If we get here, the API key is working
         return 'active';
     } catch (error) {
         const errorMessage = (error as Error).message || '';
         console.error(`API key validation failed for key ending in ...${apiKey.slice(-4)}: ${errorMessage}`);
         
-        if (errorMessage.includes('API key not valid')) {
+        // Check for specific error patterns
+        if (errorMessage.includes('API key not valid') || 
+            errorMessage.includes('invalid') || 
+            errorMessage.includes('INVALID_ARGUMENT')) {
             return 'invalid';
         }
-        if (errorMessage.includes('429') || errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('rate limit')) {
+        
+        if (errorMessage.includes('429') || 
+            errorMessage.includes('RESOURCE_EXHAUSTED') || 
+            errorMessage.includes('rate limit') ||
+            errorMessage.includes('quota') ||
+            errorMessage.includes('exceeded')) {
             return 'exhausted';
         }
         
-        // Treat other errors (network, etc.) as invalid for simplicity in the UI
-        return 'invalid';
+        // For network errors or other issues, return 'unvalidated' to allow retry
+        console.warn('Unknown error during validation, treating as unvalidated:', errorMessage);
+        return 'unvalidated' as ApiKeyStatus;
     }
 }
