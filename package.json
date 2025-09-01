@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.15.0",
+    "@tailwindcss/postcss": "^4.1.12",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
     "react": "^19.1.1",
