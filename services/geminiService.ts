@@ -198,8 +198,6 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyStatus> {
         return 'invalid';
     }
     try {
-        const ai = new GoogleGenAI({ apiKey });
-        
         // Use direct fetch to get more detailed error information
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',

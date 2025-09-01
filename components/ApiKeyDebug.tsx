@@ -355,19 +355,18 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
                     <div className="bg-gray-50 p-4 rounded">
                         <h4 className="font-semibold mb-2 text-sm">cURL Test Command:</h4>
                         <div className="bg-gray-800 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto">
-                            <div>curl -X POST \</div>
-                            <div>"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=YOUR_API_KEY" \</div>
-                            <div>-H "Content-Type: application/json" \</div>
-                            <div>-d '{`{`}</div>
-                            <div>&nbsp;&nbsp;"contents": [{`{`}</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;"parts": [</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`{ "text": "${testImagePrompt}" }`}</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;]</div>
-                            <div>&nbsp;&nbsp;{`}`}],</div>
-                            <div>&nbsp;&nbsp;"generationConfig": {`{`}</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;"responseModalities": ["IMAGE", "TEXT"]</div>
-                            <div>&nbsp;&nbsp;{`}`}</div>
-                            <div>{`}`}'</div>
+                            <div>curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=YOUR_API_KEY" \</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-H "Content-Type: application/json" \</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-d '{`{`}</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"contents": [{`{`}</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"parts": [</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`{ "text": "${testImagePrompt}" }`}</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}],</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"generationConfig": {`{`}</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"responseModalities": ["IMAGE", "TEXT"]</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}'</div>
                         </div>
                         <p className="text-xs text-gray-600 mt-2">
                             Replace YOUR_API_KEY with your actual API key to test manually
@@ -377,11 +376,22 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
                     <div className="text-sm text-gray-600">
                         <h4 className="font-semibold mb-2">Image Generation Troubleshooting:</h4>
                         <ul className="list-disc list-inside space-y-1">
-                            <li>Model 'gemini-2.5-flash-image-preview' has different quotas than text models</li>
-                            <li>Image generation uses more quota per request</li>
-                            <li>Some prompts may be blocked by safety filters</li>
-                            <li>Response should contain inlineData with image bytes</li>
+                            <li><strong>Quota Terpisah:</strong> Text dan Image generation memiliki quota yang berbeda</li>
+                            <li><strong>Quota Lebih Besar:</strong> Image generation menggunakan quota lebih banyak per request</li>
+                            <li><strong>API Key Baru:</strong> Meskipun API key baru, quota image mungkin sudah habis dari test sebelumnya</li>
+                            <li><strong>Model Berbeda:</strong> gemini-2.5-flash-image-preview vs gemini-2.5-flash memiliki limit berbeda</li>
+                            <li><strong>Safety Filter:</strong> Beberapa prompt mungkin diblokir oleh filter keamanan</li>
+                            <li><strong>Response Format:</strong> Response harus mengandung inlineData dengan image bytes</li>
+                            <li><strong>Solusi:</strong> Tunggu 24 jam atau gunakan API key berbeda untuk image generation</li>
                         </ul>
+                    </div>
+
+                    <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
+                        <h4 className="font-semibold text-yellow-800 mb-1">💡 Penjelasan Status:</h4>
+                        <p className="text-sm text-yellow-700">
+                            API key Anda <strong>VALID</strong> untuk text generation tapi <strong>QUOTA HABIS</strong> untuk image generation. 
+                            Ini normal untuk API key baru karena quota image generation lebih terbatas.
+                        </p>
                     </div>
                 </div>
             </div>
