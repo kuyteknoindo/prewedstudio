@@ -447,9 +447,144 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Your JSX content would go here */}
-            <div className="container mx-auto p-4">
-                <h1 className="text-2xl font-bold mb-4">AI Photographer</h1>
+            {/* Header */}
+            <header className="bg-white shadow-sm border-b border-slate-200">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-2xl font-bold text-slate-900">AI Prewedding Photographer</h1>
+                            <p className="text-sm text-slate-600 mt-1">Generate stunning prewedding photos with AI</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => setShowDebugPanel(true)}
+                                className="px-3 py-2 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+                            >
+                                Debug API
+                            </button>
+                            <button 
+                                onClick={() => setIsApiModalOpen(true)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Manage API Keys
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Panel - Controls */}
+                    <div className="lg:col-span-1 space-y-6">
+                        {/* Tab Navigation */}
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <div className="flex space-x-1 bg-slate-100 p-1 rounded-lg mb-6">
+                                <button
+                                    onClick={() => setActiveTab('prompt')}
+                                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                                        activeTab === 'prompt' 
+                                            ? 'bg-white text-slate-900 shadow-sm' 
+                                            : 'text-slate-600 hover:text-slate-900'
+                                    }`}
+                                >
+                                    Teks Prompt
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('reference')}
+                                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                                        activeTab === 'reference' 
+                                            ? 'bg-white text-slate-900 shadow-sm' 
+                                            : 'text-slate-600 hover:text-slate-900'
+                                    }`}
+                                >
+                                    Foto Referensi
+                                </button>
+                            </div>
+
+                            {/* Tab Content */}
+                            {activeTab === 'prompt' && (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                            Deskripsi Pasangan
+                                        </label>
+                                        <textarea
+                                            value={prompt}
+                                            onChange={(e) => setPrompt(e.target.value)}
+                                            placeholder="Deskripsikan pasangan yang ingin difoto..."
+                                            className="w-full h-32 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                        />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={generateAutoDescription}
+                                            className="flex-1 py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors text-sm"
+                                        >
+                                            Generate Otomatis
+                                        </button>
+                                        <button
+                                            onClick={handleEnhancePrompt}
+                                            disabled={isEnhancing || !prompt}
+                                            className="flex-1 py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors text-sm"
+                                        >
+                                            {isEnhancing ? 'Enhancing...' : 'Enhance'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'reference' && (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                            Upload Foto Referensi
+                                        </label>
+                                        <div
+                                            onDrop={handleDrop}
+                                            onDragOver={(e) => {
+                                                e.preventDefault();
+                                                e.currentTarget.classList.add('border-blue-500', 'bg-slate-100');
+                                            }}
+                                            onDragLeave={(e) => {
+                                                e.currentTarget.classList.remove('border-blue-500', 'bg-slate-100');
+                                            }}
+                                            className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-slate-400 transition-colors cursor-pointer"
+                                            onClick={() => document.getElementById('file-input')?.click()}
+                                        >
+                                            {imagePreview ? (
+                                                <img src={imagePreview} alt="Preview" className="max-w-full h-32 mx-auto rounded-lg" />
+                                            ) : (
+                                                <div>
+                                                    <div className="text-slate-400 mb-2">📷</div>
+                                                    <p className="text-sm text-slate-600">Drag & drop atau klik untuk upload</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <input
+                                            id="file-input"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                                            className="hidden"
+                                        />
+                                    </div>
+                                    {referenceFile && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                Catatan Tambahan (Opsional)
+                                            </label>
+                                            <textarea
+                                                value={prompt}
+                                                onChange={(e) => setPrompt(e.target.value)}
+                                                placeholder="Tambahkan catatan untuk foto referensi..."
+                                                className="w-full h-20 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                 {showDebugPanel && (
                     <ApiKeyDebug 
                         userApiKeys={userApiKeys}
@@ -467,4 +602,27 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
     );
 };
 
+                        {/* Settings */}
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Pengaturan</h3>
+                            
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        Lokasi/Tema ({locationTheme})
+                                    </label>
+                                    <select
+                                        value={locationTheme}
+                                        onChange={(e) => setLocationTheme(e.target.value)}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        {Object.entries(locationGroups).map(([group, locations]) => (
+                                            <optgroup key={group} label={group}>
+                                                {locations.map(location => (
+                                                    <option key={location} value={location}>{location}</option>
+                                                ))}
+                                            </optgroup>
+                                        ))}
+                                    </select>
+                                </div>
 export default MainApp;
