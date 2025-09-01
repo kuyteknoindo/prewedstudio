@@ -200,40 +200,63 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyStatus> {
     try {
         const ai = new GoogleGenAI({ apiKey });
         
-        // Use the most minimal request possible to validate
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: 'test',
-            config: {
-                maxOutputTokens: 1,
-                temperature: 0
-            }
+        // Use direct fetch to get more detailed error information
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: 'test' }]
+                }],
+                generationConfig: {
+                    maxOutputTokens: 1,
+                    temperature: 0
+                }
+            })
         });
         
-        // If we get here, the API key is working
-        return 'active';
-    } catch (error) {
-        const errorMessage = (error as Error).message || '';
-        console.error(`API key validation failed for key ending in ...${apiKey.slice(-4)}: ${errorMessage}`);
+        console.log(`API key validation response status: ${response.status}`);
+        
+        if (response.ok) {
+            console.log('✅ API key is active');
+            return 'active';
+        }
+        
+        const errorData = await response.json();
+        console.log('API key validation error:', errorData);
         
         // Check for specific error patterns
-        if (errorMessage.includes('API key not valid') || 
-            errorMessage.includes('invalid') || 
-            errorMessage.includes('INVALID_ARGUMENT')) {
+        if (response.status === 400) {
+            const errorMessage = errorData.error?.message || '';
+            if (errorMessage.includes('API key not valid') || 
+                errorMessage.includes('invalid') ||
+                errorMessage.includes('INVALID_ARGUMENT')) {
+                console.log('❌ API key is invalid');
+                return 'invalid';
+            }
+        }
+        
+        if (response.status === 403) {
+            console.log('❌ API key is forbidden/invalid');
             return 'invalid';
         }
         
-        if (errorMessage.includes('429') ||
-            errorMessage.includes('exceeded your current quota') ||
-            errorMessage.includes('RESOURCE_EXHAUSTED') || 
-            errorMessage.includes('rate limit') ||
-            errorMessage.includes('quota') ||
-            errorMessage.includes('exceeded')) {
+        if (response.status === 429) {
+            console.log('❌ API key quota exhausted');
             return 'exhausted';
         }
         
-        // For network errors or other issues, return 'unvalidated' to allow retry
-        console.warn('Unknown error during validation, treating as unvalidated:', errorMessage);
-        return 'unvalidated' as ApiKeyStatus;
+        // For other errors, treat as invalid
+        console.log(`❌ API key validation failed with status ${response.status}`);
+        return 'invalid';
+        
+    } catch (error) {
+        const errorMessage = (error as Error).message || '';
+        console.error(`API key validation network error for key ending in ...${apiKey.slice(-4)}: ${errorMessage}`);
+        
+        // For network errors, treat as invalid rather than unvalidated
+        return 'invalid';
     }
 }

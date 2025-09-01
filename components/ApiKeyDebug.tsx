@@ -36,17 +36,56 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
 
     const testApiKey = async (apiKey: string) => {
         setIsLoading(true);
-        setTestResult('Testing...');
+        setTestResult('Testing API key...\n\nMaking request to Gemini API...');
         
         try {
+            // Test with direct fetch for more detailed debugging
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: 'Hello, this is a test' }]
+                    }],
+                    generationConfig: {
+                        maxOutputTokens: 10,
+                        temperature: 0
+                    }
+                })
+            });
+            
+            setTestResult(prev => prev + `\n\nResponse Status: ${response.status}`);
+            setTestResult(prev => prev + `\nResponse Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                setTestResult(prev => prev + '\n\n✅ API KEY BERHASIL!\n\nResponse data:\n' + JSON.stringify(data, null, 2));
+                setTestResult(prev => prev + '\n\n🎉 API key Anda valid dan bisa digunakan!');
+            } else {
+                const errorData = await response.json();
+                setTestResult(prev => prev + '\n\n❌ API KEY GAGAL\n\nError response:\n' + JSON.stringify(errorData, null, 2));
+                
+                if (response.status === 400) {
+                    setTestResult(prev => prev + '\n\n💡 Kemungkinan: API key format salah atau tidak valid');
+                } else if (response.status === 403) {
+                    setTestResult(prev => prev + '\n\n💡 Kemungkinan: API key tidak memiliki permission atau sudah dinonaktifkan');
+                } else if (response.status === 429) {
+                    setTestResult(prev => prev + '\n\n💡 Kemungkinan: Quota habis atau rate limit tercapai');
+                }
+            }
+            
+            // Also test with the validation service
             const status = await validateApiKey(apiKey);
-            setTestResult(`API Key Status: ${status.toUpperCase()}`);
+            setTestResult(prev => prev + `\n\nValidation Service Result: ${status.toUpperCase()}`);
             
             if (status === 'active') {
-                setTestResult(prev => prev + '\n\n✅ API Key berfungsi! Klik "Add to App" untuk menambahkan ke aplikasi.');
+                setTestResult(prev => prev + '\n\n✅ Validation confirmed: API Key berfungsi! Klik "Add to App" untuk menambahkan ke aplikasi.');
             }
         } catch (error) {
-            setTestResult(`Test failed: ${(error as Error).message}`);
+            setTestResult(prev => prev + `\n\n❌ Network Error: ${(error as Error).message}`);
+            setTestResult(prev => prev + '\n\n💡 Kemungkinan: Masalah koneksi internet atau CORS');
         } finally {
             setIsLoading(false);
         }
