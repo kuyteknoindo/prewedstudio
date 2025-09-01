@@ -576,7 +576,10 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                                         key.status === 'exhausted' ? 'bg-yellow-100 text-yellow-800' :
                                                         'bg-gray-100 text-gray-800'
                                                     }`}>
-                                                        {key.status}
+                                                        {key.status === 'active' ? 'Aktif' :
+                                                         key.status === 'invalid' ? 'Invalid' :
+                                                         key.status === 'exhausted' ? 'Habis' :
+                                                         'Belum Divalidasi'}
                                                     </span>
                                                 </div>
                                                 <button
@@ -601,7 +604,7 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                     onClick={() => setIsKeyTutorialOpen(true)}
                                     className="text-blue-600 hover:text-blue-800 text-sm underline"
                                 >
-                                    Cara mendapatkan Gemini API Key
+                                    Cara mendapatkan API Key Gemini
                                 </button>
                             </div>
                         </div>
@@ -614,7 +617,7 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-slate-900">Cara Mendapatkan Gemini API Key</h3>
+                            <h3 className="text-lg font-semibold text-slate-900">Cara Mendapatkan API Key Gemini</h3>
                             <button
                                 onClick={() => setIsKeyTutorialOpen(false)}
                                 className="text-slate-400 hover:text-slate-600 text-xl"
@@ -622,47 +625,42 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                 ×
                             </button>
                         </div>
+                        
                         <div className="space-y-4 text-sm text-slate-700">
                             <div>
                                 <h4 className="font-semibold mb-2">Langkah 1: Buka Google AI Studio</h4>
                                 <p>Kunjungi <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">https://aistudio.google.com/app/apikey</a></p>
                             </div>
+                            
                             <div>
-                                <h4 className="font-semibold mb-2">Langkah 2: Login dengan Google Account</h4>
+                                <h4 className="font-semibold mb-2">Langkah 2: Login dengan Akun Google</h4>
                                 <p>Masuk menggunakan akun Google Anda</p>
                             </div>
+                            
                             <div>
-                                <h4 className="font-semibold mb-2">Langkah 3: Create API Key</h4>
+                                <h4 className="font-semibold mb-2">Langkah 3: Buat API Key</h4>
                                 <p>Klik tombol "Create API Key" dan pilih project Google Cloud Anda</p>
                             </div>
+                            
                             <div>
-                                <h4 className="font-semibold mb-2">Langkah 4: Copy API Key</h4>
-                                <p>Salin API key yang dihasilkan dan paste ke form di atas</p>
+                                <h4 className="font-semibold mb-2">Langkah 4: Salin API Key</h4>
+                                <p>Salin API key yang telah dibuat dan paste ke form di atas</p>
                             </div>
+                            
                             <div className="bg-yellow-50 p-3 rounded-lg">
-                                <p className="text-yellow-800"><strong>Catatan:</strong> API key ini gratis dengan quota terbatas. Jangan bagikan API key Anda kepada orang lain.</p>
+                                <p className="text-yellow-800"><strong>Catatan:</strong> API Key Gemini gratis memiliki batasan penggunaan. Jika sudah habis, Anda bisa membuat API key baru atau upgrade ke plan berbayar.</p>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Debug Panel Modal */}
+            {/* Debug Panel */}
             {showDebugPanel && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-slate-900">API Debug Panel</h3>
-                            <button
-                                onClick={() => setShowDebugPanel(false)}
-                                className="text-slate-400 hover:text-slate-600 text-xl"
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <ApiKeyDebug apiKeys={userApiKeys} />
-                    </div>
-                </div>
+                <ApiKeyDebug 
+                    userApiKeys={userApiKeys}
+                    onClose={() => setShowDebugPanel(false)}
+                />
             )}
 
             {/* Main Content */}
@@ -672,7 +670,7 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                     <div className="lg:col-span-1 space-y-6">
                         {/* Tab Navigation */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                            <div className="flex space-x-1 bg-slate-100 p-1 rounded-lg mb-6">
+                            <div className="flex space-x-1 bg-slate-100 rounded-lg p-1 mb-6">
                                 <button
                                     onClick={() => setActiveTab('prompt')}
                                     className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
@@ -695,7 +693,7 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                 </button>
                             </div>
 
-                            {/* Tab Content */}
+                            {/* Prompt Tab */}
                             {activeTab === 'prompt' && (
                                 <div className="space-y-4">
                                     <div>
@@ -705,9 +703,9 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                         <textarea
                                             value={prompt}
                                             onChange={(e) => setPrompt(e.target.value)}
-                                            placeholder="Contoh: Pasangan muda Indonesia, wanita berhijab putih dengan dress cream, pria kemeja putih..."
+                                            placeholder="Deskripsikan penampilan pasangan yang ingin difoto..."
                                             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                            rows={4}
+                                            rows={6}
                                         />
                                     </div>
                                     
@@ -715,15 +713,15 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                         <button
                                             onClick={handleEnhancePrompt}
                                             disabled={isEnhancing || !prompt}
-                                            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                                            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors text-sm"
                                         >
-                                            {isEnhancing ? 'Meningkatkan...' : 'Tingkatkan Prompt'}
+                                            {isEnhancing ? 'Meningkatkan...' : '✨ Tingkatkan'}
                                         </button>
                                         <button
                                             onClick={generateAutoDescription}
-                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                                         >
-                                            Auto Generate
+                                            🎲 Auto Generate
                                         </button>
                                     </div>
 
@@ -733,7 +731,7 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                             <h4 className="font-medium text-slate-900 mb-2">Preview Auto Generate:</h4>
                                             {previewData.isLoading ? (
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                                                     <span className="text-sm text-slate-600">Membuat preview...</span>
                                                 </div>
                                             ) : previewData.error ? (
@@ -742,26 +740,21 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                                 <div className="space-y-3">
                                                     <p className="text-sm text-slate-700">{previewData.textPrompt}</p>
                                                     {previewData.imageUrl && (
-                                                        <div className="flex gap-3">
+                                                        <div className="relative">
                                                             <img 
                                                                 src={previewData.imageUrl} 
-                                                                alt="Preview" 
-                                                                className="w-20 h-20 object-cover rounded-lg"
+                                                                alt="Auto generated preview" 
+                                                                className="w-full h-48 object-cover rounded-lg"
                                                             />
-                                                            <div className="flex flex-col gap-2">
-                                                                <button
-                                                                    onClick={() => setPrompt(previewData.textPrompt)}
-                                                                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                                                                >
-                                                                    Gunakan Deskripsi
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => setPreviewData(null)}
-                                                                    className="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-700 transition-colors"
-                                                                >
-                                                                    Tutup
-                                                                </button>
-                                                            </div>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setPrompt(previewData.textPrompt);
+                                                                    setPreviewData(null);
+                                                                }}
+                                                                className="absolute top-2 right-2 px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
+                                                            >
+                                                                Gunakan
+                                                            </button>
                                                         </div>
                                                     )}
                                                 </div>
@@ -769,74 +762,67 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                         </div>
                                     )}
 
-                                    {/* Adat Preview */}
-                                    <div className="mt-4 p-4 bg-amber-50 rounded-lg">
-                                        <h4 className="font-medium text-amber-900 mb-2">Generate Pakaian Adat:</h4>
-                                        <div className="flex gap-2 mb-3">
+                                    {/* Adat Preview Section */}
+                                    <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                                        <h4 className="font-medium text-amber-900 mb-3">🏛️ Generator Pakaian Adat</h4>
+                                        <div className="space-y-3">
                                             <input
                                                 type="text"
-                                                placeholder="Contoh: Jawa Tengah, Bali, Sumatra Barat..."
                                                 value={adatPreviewData?.region || ''}
                                                 onChange={(e) => setAdatPreviewData(prev => ({ 
                                                     ...(prev || { region: '', textPrompt: '', imageUrl: null, isLoading: false, status: 'idle', error: null }), 
-                                                    region: e.target.value 
+                                                    region: e.target.value, 
+                                                    error: null 
                                                 }))}
-                                                className="flex-1 px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm"
+                                                placeholder="Contoh: Jawa Tengah, Bali, Sumatra Barat..."
+                                                className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm"
                                             />
                                             <button
                                                 onClick={handleGenerateAdatPreview}
-                                                disabled={adatPreviewData?.isLoading}
-                                                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors text-sm"
+                                                disabled={adatPreviewData?.isLoading || !adatPreviewData?.region}
+                                                className="w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors text-sm"
                                             >
-                                                {adatPreviewData?.isLoading ? 'Loading...' : 'Generate'}
+                                                {adatPreviewData?.isLoading ? 
+                                                    (adatPreviewData.status === 'generating_text' ? 'Membuat deskripsi...' : 'Membuat gambar...') : 
+                                                    'Generate Pakaian Adat'
+                                                }
                                             </button>
-                                        </div>
-
-                                        {adatPreviewData && (
-                                            <div>
-                                                {adatPreviewData.isLoading ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
-                                                        <span className="text-sm text-amber-700">
-                                                            {adatPreviewData.status === 'generating_text' ? 'Membuat deskripsi...' : 'Membuat gambar...'}
-                                                        </span>
-                                                    </div>
-                                                ) : adatPreviewData.error ? (
-                                                    <p className="text-sm text-red-600">{adatPreviewData.error}</p>
-                                                ) : adatPreviewData.textPrompt && (
-                                                    <div className="space-y-3">
-                                                        <p className="text-sm text-amber-800">{adatPreviewData.textPrompt}</p>
-                                                        {adatPreviewData.imageUrl && (
-                                                            <div className="flex gap-3">
-                                                                <img 
-                                                                    src={adatPreviewData.imageUrl} 
-                                                                    alt="Adat Preview" 
-                                                                    className="w-20 h-20 object-cover rounded-lg"
-                                                                />
-                                                                <div className="flex flex-col gap-2">
+                                            
+                                            {adatPreviewData && (adatPreviewData.textPrompt || adatPreviewData.error) && (
+                                                <div className="mt-3 p-3 bg-white rounded-lg border border-amber-200">
+                                                    {adatPreviewData.error ? (
+                                                        <p className="text-sm text-red-600">{adatPreviewData.error}</p>
+                                                    ) : (
+                                                        <div className="space-y-3">
+                                                            <p className="text-sm text-slate-700">{adatPreviewData.textPrompt}</p>
+                                                            {adatPreviewData.imageUrl && (
+                                                                <div className="relative">
+                                                                    <img 
+                                                                        src={adatPreviewData.imageUrl} 
+                                                                        alt="Adat preview" 
+                                                                        className="w-full h-48 object-cover rounded-lg"
+                                                                    />
                                                                     <button
-                                                                        onClick={() => setPrompt(adatPreviewData.textPrompt)}
-                                                                        className="px-3 py-1 bg-amber-600 text-white text-sm rounded hover:bg-amber-700 transition-colors"
+                                                                        onClick={() => {
+                                                                            setPrompt(adatPreviewData.textPrompt);
+                                                                            setAdatPreviewData(null);
+                                                                        }}
+                                                                        className="absolute top-2 right-2 px-3 py-1 bg-amber-600 text-white text-xs rounded-lg hover:bg-amber-700 transition-colors"
                                                                     >
-                                                                        Gunakan Deskripsi
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => setAdatPreviewData(null)}
-                                                                        className="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-700 transition-colors"
-                                                                    >
-                                                                        Tutup
+                                                                        Gunakan
                                                                     </button>
                                                                 </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
 
+                            {/* Reference Tab */}
                             {activeTab === 'reference' && (
                                 <div className="space-y-4">
                                     <div>
@@ -858,18 +844,24 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                         >
                                             {imagePreview ? (
                                                 <div className="space-y-3">
-                                                    <img src={imagePreview} alt="Preview" className="mx-auto max-h-32 rounded-lg" />
+                                                    <img 
+                                                        src={imagePreview} 
+                                                        alt="Preview" 
+                                                        className="w-full h-48 object-cover rounded-lg"
+                                                    />
                                                     <p className="text-sm text-slate-600">Klik untuk mengganti foto</p>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-2">
-                                                    <div className="mx-auto w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-                                                        <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                    <div className="text-slate-400">
+                                                        <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                                                         </svg>
                                                     </div>
-                                                    <p className="text-sm text-slate-600">Drag & drop atau klik untuk upload</p>
-                                                    <p className="text-xs text-slate-500">PNG, JPG hingga 10MB</p>
+                                                    <div>
+                                                        <p className="text-sm text-slate-600">Drag & drop foto atau klik untuk upload</p>
+                                                        <p className="text-xs text-slate-500 mt-1">PNG, JPG, JPEG hingga 10MB</p>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -881,7 +873,7 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                             className="hidden"
                                         />
                                     </div>
-                                    
+
                                     {referenceFile && (
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -890,7 +882,7 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                             <textarea
                                                 value={prompt}
                                                 onChange={(e) => setPrompt(e.target.value)}
-                                                placeholder="Contoh: Ganti background ke pantai, ubah pose lebih romantis..."
+                                                placeholder="Tambahkan catatan khusus untuk foto referensi..."
                                                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                                 rows={3}
                                             />
@@ -900,11 +892,12 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                             )}
                         </div>
 
-                        {/* Settings */}
+                        {/* Location & Settings */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Pengaturan</h3>
+                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Pengaturan Foto</h3>
                             
                             <div className="space-y-4">
+                                {/* Location Theme */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
                                         Tema Lokasi
@@ -924,6 +917,45 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                     </select>
                                 </div>
 
+                                {/* Image Count */}
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        Jumlah Foto: {imageCount}
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="20"
+                                        value={imageCount}
+                                        onChange={(e) => setImageCount(parseInt(e.target.value))}
+                                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider"
+                                    />
+                                    <div className="flex justify-between text-xs text-slate-500 mt-1">
+                                        <span>1</span>
+                                        <span>20</span>
+                                    </div>
+                                </div>
+
+                                {/* Delay */}
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        Jeda Antar Foto: {delay}s
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="30"
+                                        value={delay}
+                                        onChange={(e) => setDelay(parseInt(e.target.value))}
+                                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider"
+                                    />
+                                    <div className="flex justify-between text-xs text-slate-500 mt-1">
+                                        <span>0s</span>
+                                        <span>30s</span>
+                                    </div>
+                                </div>
+
+                                {/* Image Model */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
                                         Model AI
@@ -934,58 +966,30 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value="gemini-2.5-flash-image-preview">Gemini 2.5 Flash (Cepat)</option>
-                                        <option value="imagen-3.0-generate-001">Imagen 3.0 (Kualitas Tinggi)</option>
+                                        <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash Experimental</option>
                                     </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Jumlah Foto: {imageCount}
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="1"
-                                        max="10"
-                                        value={imageCount}
-                                        onChange={(e) => setImageCount(parseInt(e.target.value))}
-                                        className="w-full"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Jeda Antar Foto: {delay}s
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="10"
-                                        value={delay}
-                                        onChange={(e) => setDelay(parseInt(e.target.value))}
-                                        className="w-full"
-                                    />
                                 </div>
                             </div>
                         </div>
 
                         {/* Negative Prompts */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Filter Negatif</h3>
+                            <h3 className="text-lg font-semibold text-slate-900 mb-4">Negative Prompts</h3>
                             
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Tag Negatif
+                                        Pilih yang ingin dihindari:
                                     </label>
                                     <div className="flex flex-wrap gap-2">
-                                        {D.negativePromptTags.map(tag => (
+                                        {D.negativePrompts.map(tag => (
                                             <button
                                                 key={tag}
                                                 onClick={() => toggleNegativePrompt(tag)}
-                                                className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                                                className={`px-3 py-1 text-xs rounded-full border transition-colors ${
                                                     selectedNegativePrompts.has(tag)
-                                                        ? 'bg-red-100 text-red-800 border border-red-300'
-                                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                                        ? 'bg-red-100 text-red-800 border-red-300'
+                                                        : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
                                                 }`}
                                             >
                                                 {tag}
@@ -996,12 +1000,12 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
 
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Custom Negative Prompt
+                                        Custom Negative Prompts:
                                     </label>
                                     <textarea
                                         value={customNegativePrompt}
                                         onChange={(e) => setCustomNegativePrompt(e.target.value)}
-                                        placeholder="Contoh: blur, low quality, distorted..."
+                                        placeholder="Tambahkan negative prompts kustom, pisahkan dengan koma..."
                                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                         rows={2}
                                     />
@@ -1020,32 +1024,31 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                         >
                                             🎯 Mulai Sesi Foto
                                         </button>
+                                        
                                         {generatedImages.length > 0 && sessionFinished && (
                                             <button
                                                 onClick={() => runGeneration(true)}
                                                 className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                                             >
-                                                ➕ Lanjutkan Sesi ({imageCount} foto lagi)
+                                                ➕ Lanjutkan Sesi ({generatedImages.length} foto)
                                             </button>
                                         )}
                                     </div>
                                 ) : (
-                                    <button
-                                        onClick={handleStop}
-                                        className="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-                                    >
-                                        ⏹️ Hentikan Proses
-                                    </button>
-                                )}
-                                
-                                {statusText && (
-                                    <div className="text-center">
-                                        <p className="text-sm text-slate-600">{statusText}</p>
-                                        {isLoading && (
-                                            <div className="mt-2 w-full bg-slate-200 rounded-full h-2">
-                                                <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={handleStop}
+                                            className="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                                        >
+                                            ⏹️ Hentikan Proses
+                                        </button>
+                                        
+                                        <div className="text-center">
+                                            <div className="inline-flex items-center gap-2 text-sm text-slate-600">
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                                <span>{statusText}</span>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -1059,6 +1062,7 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                 <h3 className="text-lg font-semibold text-slate-900">
                                     Hasil Foto ({generatedImages.length})
                                 </h3>
+                                
                                 {generatedImages.length > 0 && (
                                     <button
                                         onClick={() => setModals(prev => ({...prev, download: true}))}
@@ -1071,35 +1075,61 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
 
                             {generatedImages.length === 0 ? (
                                 <div className="text-center py-12">
-                                    <div className="mx-auto w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                        <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    <div className="text-slate-400 mb-4">
+                                        <svg className="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </div>
-                                    <h4 className="text-lg font-medium text-slate-900 mb-2">Belum Ada Foto</h4>
-                                    <p className="text-slate-600">Mulai sesi foto untuk melihat hasil AI di sini</p>
+                                    <h4 className="text-lg font-medium text-slate-900 mb-2">Belum ada foto yang dihasilkan</h4>
+                                    <p className="text-slate-600">Mulai sesi foto untuk melihat hasil di sini</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {generatedImages.map((image) => (
+                                    {generatedImages.map((image, index) => (
                                         <div key={image.id} className="group relative">
-                                            <img
-                                                src={image.url}
-                                                alt="Generated"
-                                                className="w-full aspect-[3/4] object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                                                onClick={() => setModals(prev => ({...prev, lightbox: image.url}))}
-                                            />
-                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="aspect-[3/4] bg-slate-100 rounded-lg overflow-hidden">
+                                                <img
+                                                    src={image.url}
+                                                    alt={`Generated ${index + 1}`}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
+                                                    onClick={() => setModals(prev => ({...prev, lightbox: image.url}))}
+                                                />
+                                            </div>
+                                            
+                                            {/* Image overlay */}
+                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
                                                     <button
                                                         onClick={() => setModals(prev => ({...prev, lightbox: image.url}))}
-                                                        className="p-2 bg-white rounded-full shadow-lg hover:bg-slate-50 transition-colors"
+                                                        className="p-2 bg-white bg-opacity-90 rounded-full hover:bg-opacity-100 transition-all"
+                                                        title="View full size"
                                                     >
-                                                        <svg className="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                const blob = await fetch(image.url).then(res => res.blob());
+                                                                saveAs(blob, generateRandomFilename('prewedding', 'jpeg'));
+                                                            } catch (e) {
+                                                                console.error("Download failed:", e);
+                                                            }
+                                                        }}
+                                                        className="p-2 bg-white bg-opacity-90 rounded-full hover:bg-opacity-100 transition-all"
+                                                        title="Download"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                         </svg>
                                                     </button>
                                                 </div>
+                                            </div>
+                                            
+                                            {/* Image number */}
+                                            <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                                                #{index + 1}
                                             </div>
                                         </div>
                                     ))}
@@ -1114,8 +1144,15 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
             {modals.error && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl p-6 max-w-md w-full">
-                        <h3 className="text-lg font-semibold text-red-600 mb-4">Error</h3>
-                        <p className="text-slate-700 mb-4">{modals.error}</p>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-semibold text-slate-900">Error</h3>
+                        </div>
+                        <p className="text-slate-700 mb-6">{modals.error}</p>
                         <button
                             onClick={() => setModals(prev => ({...prev, error: null}))}
                             className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
@@ -1130,37 +1167,36 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
             {modals.download && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl p-6 max-w-md w-full">
-                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Download Foto</h3>
-                        <p className="text-slate-600 mb-6">Pilih format download:</p>
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Download Opsi</h3>
                         <div className="space-y-3">
                             <button
                                 onClick={() => handleDownloadZip()}
                                 className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-left"
                             >
-                                <div className="font-medium">Original (3:4)</div>
-                                <div className="text-sm opacity-90">Download dalam ukuran asli</div>
+                                <div className="font-medium">Download Original</div>
+                                <div className="text-sm text-blue-100">Ukuran asli tanpa crop</div>
                             </button>
                             <button
                                 onClick={() => handleDownloadZip(1)}
                                 className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-left"
                             >
-                                <div className="font-medium">Square (1:1)</div>
-                                <div className="text-sm opacity-90">Cocok untuk Instagram post</div>
+                                <div className="font-medium">Download Square (1:1)</div>
+                                <div className="text-sm text-green-100">Cocok untuk Instagram post</div>
                             </button>
                             <button
                                 onClick={() => handleDownloadZip(16/9)}
                                 className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-left"
                             >
-                                <div className="font-medium">Landscape (16:9)</div>
-                                <div className="text-sm opacity-90">Cocok untuk wallpaper</div>
+                                <div className="font-medium">Download Landscape (16:9)</div>
+                                <div className="text-sm text-purple-100">Cocok untuk wallpaper</div>
+                            </button>
+                            <button
+                                onClick={() => setModals(prev => ({...prev, download: false}))}
+                                className="w-full px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                            >
+                                Batal
                             </button>
                         </div>
-                        <button
-                            onClick={() => setModals(prev => ({...prev, download: false}))}
-                            className="w-full mt-4 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
-                        >
-                            Batal
-                        </button>
                     </div>
                 </div>
             )}
@@ -1169,19 +1205,17 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
             {modals.lightbox && (
                 <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
                     <div className="relative max-w-4xl max-h-full">
-                        <img
-                            src={modals.lightbox}
-                            alt="Full size"
-                            className="max-w-full max-h-full object-contain rounded-lg"
-                        />
                         <button
                             onClick={() => setModals(prev => ({...prev, lightbox: null}))}
-                            className="absolute top-4 right-4 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors"
+                            className="absolute -top-12 right-0 text-white hover:text-gray-300 text-xl"
                         >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            ✕ Tutup
                         </button>
+                        <img
+                            src={modals.lightbox}
+                            alt="Full size preview"
+                            className="max-w-full max-h-full object-contain rounded-lg"
+                        />
                     </div>
                 </div>
             )}
