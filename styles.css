@@ -2,10 +2,17 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-body { 
+body {
     font-family: 'Plus Jakarta Sans', sans-serif; 
-    background-color: #f8fafc; /* slate-50 */
+    background-color: #f8fafc;
+    overflow-x: hidden; /* Prevent horizontal scroll only */
+    /* Remove overflow: hidden to allow vertical scrolling */
 }
+
+html {
+    scroll-behavior: smooth;
+}
+
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; } /* slate-100 */
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; } /* slate-400 */

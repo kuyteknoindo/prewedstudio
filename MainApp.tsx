@@ -333,19 +333,25 @@ const MainApp: React.FC = () => {
             if (scenarios.length < imageCount) {
                 const fallback = { scene: 'The couple shares a quiet, intimate moment.', emotion: 'A feeling of deep connection.' };
                 scenarios.push(...Array(imageCount - scenarios.length).fill(fallback));
-            }
-            
-            setStatusText(`Persiapan selesai. Memulai sesi foto...`);
+        // Try keys in order: active -> unvalidated -> exhausted (as last resort)
+        const sortedKeys = [...userApiKeys].sort((a, b) => {
+            const priority = { active: 0, unvalidated: 1, exhausted: 2, invalid: 3 };
+            return priority[a.status] - priority[b.status];
+        });
             await new Promise(resolve => setTimeout(resolve, 2000));
-
+        if (sortedKeys.length === 0) {
             // Step 3: Loop through and generate images
             const startIndex = isContinuation ? generatedImages.length : 0;
             const targetCount = startIndex + imageCount;
-    
+        for (const key of sortedKeys) {
+            // Skip invalid keys
+            if (key.status === 'invalid') continue;
+            
             for (let i = startIndex; i < targetCount; i++) {
                 if (!isGenerationRunningRef.current) break;
-    
-                const scenarioIndex = i - startIndex;
+                
+                // If successful and key was unvalidated, mark as active
+                if (key.status === 'unvalidated') {
                 const scenario = scenarios[scenarioIndex % scenarios.length];
                 const photoStyle = shuffleArray(D.photographicStyles)[0];
                 const negativePrompt = [
@@ -424,16 +430,31 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
         for (const image of generatedImages) {
             try {
                 let blob = await fetch(image.url).then(res => res.blob());
-                if (aspectRatio) {
+                // Check for quota/rate limit errors
+                if (errorMessage.includes('429') || 
+                    errorMessage.includes('RESOURCE_EXHAUSTED') || 
+                    errorMessage.includes('rate limit') ||
+                    errorMessage.includes('quota') ||
+                    errorMessage.includes('exceeded')) {
                     blob = await cropImageToAspectRatio(blob, aspectRatio);
-                }
+                } else if (errorMessage.includes('API key not valid') || 
+                          errorMessage.includes('invalid') ||
+                          errorMessage.includes('INVALID_ARGUMENT')) {
                 zip.file(generateRandomFilename('prewedding', 'jpeg'), blob);
             } catch (e) {
+                
+                // Continue to next key
                 console.error("Failed to process image for download:", image.url, e);
             }
         }
         
-        const content = await zip.generateAsync({ type: "blob" });
+        // If we get here, all keys failed
+        const hasValidKeys = sortedKeys.some(key => key.status !== 'invalid');
+        if (!hasValidKeys) {
+            throw new Error('Semua kunci API tidak valid. Silakan periksa kunci Anda.');
+        } else {
+            throw new Error('Semua kunci API telah mencapai batas. Silakan tunggu atau tambahkan kunci baru.');
+        }
         saveAs(content, generateRandomFilename('prewedding', 'zip'));
     };
 
