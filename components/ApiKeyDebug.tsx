@@ -137,7 +137,6 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
         setIsLoading(false);
     };
 
-    const testImageGeneration = async (apiKey: string, prompt: string) => {
     const testImageGeneration = async (apiKey: string, prompt: string, model: string = 'gemini-2.5-flash-image-preview') => {
         setIsImageTesting(true);
         setImageTestResult(`Testing image generation with ${model}...`);
@@ -251,6 +250,7 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
 
         await testImageGeneration(keyToTest.value, testImagePrompt);
     };
+    
     useEffect(() => {
         checkStoredApiKeys();
     }, []);
