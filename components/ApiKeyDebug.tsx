@@ -143,7 +143,7 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
         
         try {
             // Test using the official Google GenAI SDK
-            const genAI = new (await import('@google/genai')).GoogleGenAI(apiKey);
+            const genAI = new (await import('@google/genai')).GoogleGenAI({ apiKey: apiKey });
             
             if (model === 'imagen-3.0-generate-001') {
                 setImageTestResult(prev => prev + '\n\nUsing Imagen 3.0 model...');
