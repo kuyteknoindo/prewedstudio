@@ -137,23 +137,23 @@ const MainApp: React.FC = () => {
                     } else {
                         // For other errors (e.g., network), fail fast without changing key status.
                         throw error;
-                    }
-                    // Continue to the next key if the current one failed due to being invalid or exhausted.
-                }
-            }
-        }
+    };
 
-        // Priority 2: Fallback to Admin Key if available and all user keys failed.
-        if (adminApiKeyAvailable && process.env.API_KEY) {
-            try {
-                return await apiFunction(process.env.API_KEY);
-            } catch (error) {
-                console.error("Admin API key failed.", error);
-                throw new Error("Layanan sedang tidak tersedia. Silakan coba lagi nanti atau tambahkan kunci API Anda sendiri.");
-            }
-        }
-
-        // If all keys (user and admin) have failed or none are available.
+    // Function to get the best available API key
+    const getBestApiKey = (): string => {
+        // First try active keys
+        const activeKey = userApiKeys.find(key => key.status === 'active');
+        if (activeKey) return activeKey.value;
+        
+        // Then try unvalidated keys (newly added)
+        const unvalidatedKey = userApiKeys.find(key => key.status === 'unvalidated');
+        if (unvalidatedKey) return unvalidatedKey.value;
+        
+        // Finally try exhausted keys (might have reset)
+        const exhaustedKey = userApiKeys.find(key => key.status === 'exhausted');
+        if (exhaustedKey) return exhaustedKey.value;
+        
+        // No keys available
         setIsApiModalOpen(true);
         throw new Error("Tidak ada kunci API yang aktif. Silakan tambahkan kunci Anda sendiri.");
     };
