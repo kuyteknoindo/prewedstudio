@@ -8,6 +8,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import saveAs from 'file-saver';
 import JSZip from 'jszip';
 import { GeneratedImage, ModalState, ReferenceFile, ActiveTab, ApiKey, ApiKeyStatus } from './types';
+import ApiKeyDebug from './components/ApiKeyDebug';
 import { generateImage, generateText, generateConsistentCoupleDescription, generateLocationBasedScenarios, validateApiKey } from './services/geminiService';
 import { shuffleArray, generateRandomFilename, cropImageToAspectRatio } from './utils';
 import * as D from './creativeData';
