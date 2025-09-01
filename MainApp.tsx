@@ -737,6 +737,12 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                         onClose={() => setShowDebugPanel(false)}
                     />
                 )}
+                <button 
+                    onClick={() => setShowDebugPanel(true)}
+                    className="w-full px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm"
+                >
+                    Debug API
+                </button>
 
                         {/* Settings */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
