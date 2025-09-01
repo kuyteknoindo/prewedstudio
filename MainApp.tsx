@@ -87,6 +87,32 @@ const MainApp: React.FC = () => {
         setUserApiKeys(getStoredApiKeys());
     }, []);
 
+    const validateAndUpdateApiKey = async (apiKey: ApiKey) => {
+        console.log(`🔄 Validating API key ${apiKey.masked}...`);
+        try {
+            const status = await validateApiKey(apiKey.value);
+            console.log(`📊 Validation result for ${apiKey.masked}: ${status}`);
+            
+            const updatedKeys = userApiKeys.map(key => 
+                key.id === apiKey.id ? { ...key, status } : key
+            );
+            setUserApiKeys(updatedKeys);
+            localStorage.setItem('ai_photographer_api_keys', JSON.stringify(updatedKeys));
+            
+            // Force re-render to update UI
+            setUserApiKeys([...updatedKeys]);
+            
+        } catch (error) {
+            console.error('Error validating API key:', error);
+            // Mark as invalid if validation fails
+            const updatedKeys = userApiKeys.map(key => 
+                key.id === apiKey.id ? { ...key, status: 'invalid' as ApiKeyStatus } : key
+            );
+            setUserApiKeys(updatedKeys);
+            localStorage.setItem('ai_photographer_api_keys', JSON.stringify(updatedKeys));
+        }
+    };
+
     const performApiCall = async <T,>(apiFunction: (apiKey: string) => Promise<T>): Promise<T> => {
         // Combine active and unvalidated keys, prioritizing active ones for use.
         const availableKeys = [
