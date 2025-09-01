@@ -12,7 +12,19 @@ import { ApiKeyStatus } from "../types";
  */
 export async function generateImage(apiKey: string, prompt: string, model: string, imageBase64?: string, mimeType?: string): Promise<string> {
     try {
+        console.log('generateImage called with:', {
+            apiKeyPrefix: apiKey.slice(0, 8) + '...',
+            model,
+            promptLength: prompt.length,
+            hasReferenceImage: !!imageBase64
+        });
+        
+        if (!apiKey || apiKey.trim() === '') {
+            throw new Error('API key is required but not provided');
+        }
+        
         const genAI = new GoogleGenAI(apiKey);
+        console.log('GoogleGenAI client created for image generation');
 
         if (model === 'imagen-4.0-generate-001') {
             if (imageBase64) {
