@@ -473,6 +473,160 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                 </div>
             </header>
 
+            {/* API Key Management Modal */}
+            {isApiModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl p-6 max-w-md w-full">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-slate-900">Kelola API Keys</h3>
+                            <button
+                                onClick={() => setIsApiModalOpen(false)}
+                                className="text-slate-400 hover:text-slate-600 text-xl"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* Add New API Key */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Tambah API Key Baru
+                                </label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="password"
+                                        value={apiKeyInput}
+                                        onChange={(e) => setApiKeyInput(e.target.value)}
+                                        placeholder="Masukkan Gemini API key..."
+                                        className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                    <button
+                                        onClick={async () => {
+                                            if (!apiKeyInput.trim()) return;
+                                            
+                                            setIsKeyValidationLoading(true);
+                                            try {
+                                                const status = await validateApiKey(apiKeyInput.trim());
+                                                const newKey: ApiKey = {
+                                                    id: `key_${Date.now()}`,
+                                                    value: apiKeyInput.trim(),
+                                                    masked: `${apiKeyInput.slice(0, 4)}...${apiKeyInput.slice(-4)}`,
+                                                    status
+                                                };
+                                                
+                                                const updatedKeys = [...userApiKeys, newKey];
+                                                setUserApiKeys(updatedKeys);
+                                                storeApiKeys(updatedKeys);
+                                                setApiKeyInput('');
+                                                
+                                                if (status === 'active') {
+                                                    setIsApiModalOpen(false);
+                                                }
+                                            } catch (error) {
+                                                console.error('Error validating API key:', error);
+                                            } finally {
+                                                setIsKeyValidationLoading(false);
+                                            }
+                                        }}
+                                        disabled={!apiKeyInput.trim() || isKeyValidationLoading}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                    >
+                                        {isKeyValidationLoading ? 'Validating...' : 'Tambah'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Existing API Keys */}
+                            {userApiKeys.length > 0 && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        API Keys Tersimpan
+                                    </label>
+                                    <div className="space-y-2">
+                                        {userApiKeys.map((key) => (
+                                            <div key={key.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                <div className="flex items-center space-x-3">
+                                                    <code className="text-sm text-slate-600">{key.masked}</code>
+                                                    <span className={`px-2 py-1 text-xs rounded-full ${
+                                                        key.status === 'active' ? 'bg-green-100 text-green-800' :
+                                                        key.status === 'invalid' ? 'bg-red-100 text-red-800' :
+                                                        key.status === 'exhausted' ? 'bg-yellow-100 text-yellow-800' :
+                                                        'bg-slate-100 text-slate-800'
+                                                    }`}>
+                                                        {key.status}
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        const updatedKeys = userApiKeys.filter(k => k.id !== key.id);
+                                                        setUserApiKeys(updatedKeys);
+                                                        storeApiKeys(updatedKeys);
+                                                    }}
+                                                    className="text-red-500 hover:text-red-700 text-sm"
+                                                >
+                                                    Hapus
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Tutorial Link */}
+                            <div className="pt-4 border-t border-slate-200">
+                                <button
+                                    onClick={() => setIsKeyTutorialOpen(true)}
+                                    className="text-blue-600 hover:text-blue-700 text-sm underline"
+                                >
+                                    Cara mendapatkan Gemini API Key
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* API Key Tutorial Modal */}
+            {isKeyTutorialOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-slate-900">Cara Mendapatkan Gemini API Key</h3>
+                            <button
+                                onClick={() => setIsKeyTutorialOpen(false)}
+                                className="text-slate-400 hover:text-slate-600 text-xl"
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <div className="space-y-4 text-sm text-slate-700">
+                            <div>
+                                <h4 className="font-semibold mb-2">Langkah 1: Buka Google AI Studio</h4>
+                                <p>Kunjungi <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-blue-600 underline">https://aistudio.google.com/app/apikey</a></p>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold mb-2">Langkah 2: Login dengan Google</h4>
+                                <p>Masuk menggunakan akun Google Anda</p>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold mb-2">Langkah 3: Buat API Key</h4>
+                                <p>Klik "Create API Key" dan pilih project Google Cloud Anda</p>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold mb-2">Langkah 4: Copy API Key</h4>
+                                <p>Salin API key yang dihasilkan dan paste di aplikasi ini</p>
+                            </div>
+                            <div className="bg-yellow-50 p-3 rounded-lg">
+                                <p className="text-yellow-800 text-xs">
+                                    <strong>Catatan:</strong> API key gratis memiliki limit harian. Jika limit terlampaui, tunggu 24 jam atau upgrade ke plan berbayar.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Panel - Controls */}
