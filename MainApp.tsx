@@ -137,6 +137,22 @@ const MainApp: React.FC = () => {
                     } else {
                         // For other errors (e.g., network), fail fast without changing key status.
                         throw error;
+                    }
+                }
+            }
+        }
+
+        // If no user keys are available or all failed, try admin key as fallback
+        if (adminApiKeyAvailable) {
+            return await apiFunction(process.env.API_KEY!);
+        }
+
+        // No keys available
+        setIsApiModalOpen(true);
+        throw new Error("Tidak ada kunci API yang aktif. Silakan tambahkan kunci Anda sendiri.");
+        } catch (error) {
+            throw error;
+        }
     };
 
     // Function to get the best available API key
@@ -404,7 +420,14 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
         } finally {
             if (isGenerationRunningRef.current) {
                 setStatusText("Sesi foto selesai!");
+                setSessionFinished(true);
             } else {
+                setStatusText("Proses dihentikan.");
+            }
+            setIsLoading(false);
+            isGenerationRunningRef.current = false;
+        }
+    };
 
     const handleStop = () => {
         isGenerationRunningRef.current = false;
