@@ -138,66 +138,99 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
     };
 
     const testImageGeneration = async (apiKey: string, prompt: string) => {
+    const testImageGeneration = async (apiKey: string, prompt: string, model: string = 'gemini-2.5-flash-image-preview') => {
         setIsImageTesting(true);
-        setImageTestResult('Testing image generation...');
+        setImageTestResult(`Testing image generation with ${model}...`);
         
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            let url: string;
+            let body: any;
+            
+            if (model === 'gemini-pro-vision') {
+                url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`;
+                body = {
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }]
+                };
+            } else if (model === 'imagen-4.0-generate-001') {
+                url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:generateContent?key=${apiKey}`;
+                body = {
+                    prompt: prompt,
+                    config: {
+                        numberOfImages: 1,
+                        outputMimeType: 'image/jpeg',
+                        aspectRatio: '3:4'
+                    }
+                };
+            } else {
+                url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+                body = {
                     contents: [{
                         parts: [{ text: prompt }]
                     }],
                     generationConfig: {
                         responseModalities: ['IMAGE', 'TEXT']
                     }
-                })
+                };
+            }
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body)
             });
 
-            console.log('Image generation response status:', response.status);
-            console.log('Image generation response headers:', Object.fromEntries(response.headers.entries()));
+            setImageTestResult(prev => prev + `\n\nResponse Status: ${response.status}`);
+            setImageTestResult(prev => prev + `\nResponse Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}`);
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.log('Image generation error response:', errorData);
+                setImageTestResult(prev => prev + '\n\nError Response:\n' + JSON.stringify(errorData, null, 2));
                 
                 if (response.status === 429) {
-                    setImageTestResult('❌ QUOTA EXHAUSTED - API key has reached its limit\n\nError details:\n' + JSON.stringify(errorData, null, 2));
+                    setImageTestResult(prev => prev + '\n\n❌ QUOTA EXHAUSTED - API key has reached its limit for image generation');
                 } else if (response.status === 400) {
-                    setImageTestResult('❌ BAD REQUEST - Invalid request format or parameters\n\nError details:\n' + JSON.stringify(errorData, null, 2));
+                    setImageTestResult(prev => prev + '\n\n❌ BAD REQUEST - Invalid request format or model not supported');
                 } else if (response.status === 403) {
-                    setImageTestResult('❌ FORBIDDEN - API key invalid or insufficient permissions\n\nError details:\n' + JSON.stringify(errorData, null, 2));
+                    setImageTestResult(prev => prev + '\n\n❌ FORBIDDEN - API key invalid or insufficient permissions');
                 } else {
-                    setImageTestResult(`❌ ERROR ${response.status}\n\nError details:\n` + JSON.stringify(errorData, null, 2));
+                    setImageTestResult(prev => prev + `\n\n❌ ERROR ${response.status}`);
                 }
                 return;
             }
 
             const data = await response.json();
-            console.log('Image generation success response:', data);
+            setImageTestResult(prev => prev + '\n\nSuccess Response:\n' + JSON.stringify(data, null, 2));
             
             // Check if image was generated
-            const candidate = data.candidates?.[0];
-            if (candidate?.content?.parts) {
-                const imagePart = candidate.content.parts.find((part: any) => 
-                    part.inlineData && part.inlineData.mimeType?.startsWith('image/')
-                );
-                
-                if (imagePart) {
-                    setImageTestResult('✅ IMAGE GENERATION SUCCESS!\n\nImage was generated successfully. The API key is working for image generation.');
+            if (model === 'imagen-4.0-generate-001') {
+                if (data.generatedImages && data.generatedImages.length > 0) {
+                    setImageTestResult(prev => prev + '\n\n✅ IMAGE GENERATION SUCCESS with imagen-4.0!');
                 } else {
-                    setImageTestResult('⚠️ NO IMAGE GENERATED\n\nAPI responded successfully but no image was found in the response.\n\nResponse:\n' + JSON.stringify(data, null, 2));
+                    setImageTestResult(prev => prev + '\n\n⚠️ NO IMAGE GENERATED with imagen-4.0');
                 }
             } else {
-                setImageTestResult('⚠️ UNEXPECTED RESPONSE FORMAT\n\nResponse:\n' + JSON.stringify(data, null, 2));
+                const candidate = data.candidates?.[0];
+                if (candidate?.content?.parts) {
+                    const imagePart = candidate.content.parts.find((part: any) => 
+                        part.inlineData && part.inlineData.mimeType?.startsWith('image/')
+                    );
+                    
+                    if (imagePart) {
+                        setImageTestResult(prev => prev + `\n\n✅ IMAGE GENERATION SUCCESS with ${model}!`);
+                    } else {
+                        setImageTestResult(prev => prev + `\n\n⚠️ NO IMAGE GENERATED with ${model}`);
+                    }
+                } else {
+                    setImageTestResult(prev => prev + `\n\n⚠️ UNEXPECTED RESPONSE FORMAT with ${model}`);
+                }
             }
             
         } catch (error) {
-            console.error('Image generation test error:', error);
-            setImageTestResult(`❌ NETWORK ERROR\n\nFailed to connect to API:\n${(error as Error).message}`);
+            setImageTestResult(prev => prev + `\n\n❌ NETWORK ERROR: ${(error as Error).message}`);
         } finally {
             setIsImageTesting(false);
         }
@@ -209,13 +242,14 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
             return;
         }
 
-        const activeKey = userApiKeys.find(key => key.status === 'active');
-        if (!activeKey) {
-            setImageTestResult('No active API keys found. Please test and validate an API key first.');
+        // Use the first available key regardless of status
+        const keyToTest = userApiKeys[0];
+        if (!keyToTest) {
+            setImageTestResult('No API keys available to test.');
             return;
         }
 
-        await testImageGeneration(activeKey.value, testImagePrompt);
+        await testImageGeneration(keyToTest.value, testImagePrompt);
     };
     useEffect(() => {
         checkStoredApiKeys();
@@ -355,22 +389,36 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
                     <div className="bg-gray-50 p-4 rounded">
                         <h4 className="font-semibold mb-2 text-sm">cURL Test Command:</h4>
                         <div className="bg-gray-800 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto">
-                            <div>curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=YOUR_API_KEY" \</div>
+                            <div>curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=YOUR_API_KEY" \</div>
                             <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-H "Content-Type: application/json" \</div>
                             <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-d '{`{`}</div>
                             <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"contents": [{`{`}</div>
                             <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"parts": [</div>
                             <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`{ "text": "${testImagePrompt}" }`}</div>
                             <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}],</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"generationConfig": {`{`}</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"responseModalities": ["IMAGE", "TEXT"]</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}</div>
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}]</div>
                             <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}'</div>
                         </div>
                         <p className="text-xs text-gray-600 mt-2">
-                            Replace YOUR_API_KEY with your actual API key to test manually
+                            Replace YOUR_API_KEY with your actual API key to test manually. This uses the gemini-pro-vision model as you suggested.
                         </p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <button 
+                            onClick={() => testImageGeneration(testApiKeyInput, testImagePrompt, 'gemini-pro-vision')}
+                            disabled={isImageTesting || !testApiKeyInput.trim() || !testImagePrompt.trim()}
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:opacity-50 w-full"
+                        >
+                            {isImageTesting ? 'Testing...' : 'Test with gemini-pro-vision'}
+                        </button>
+                        <button 
+                            onClick={() => testImageGeneration(testApiKeyInput, testImagePrompt, 'imagen-4.0-generate-001')}
+                            disabled={isImageTesting || !testApiKeyInput.trim() || !testImagePrompt.trim()}
+                            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:opacity-50 w-full"
+                        >
+                            {isImageTesting ? 'Testing...' : 'Test with imagen-4.0-generate-001'}
+                        </button>
                     </div>
 
                     <div className="text-sm text-gray-600">

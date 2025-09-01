@@ -198,8 +198,49 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyStatus> {
         return 'invalid';
     }
     try {
-        // Use direct fetch to get more detailed error information
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        const ai = new GoogleGenAI({ apiKey });
+        
+        // Use a minimal test request
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: 'test',
+            config: {
+                maxOutputTokens: 1,
+                temperature: 0
+            }
+        });
+        
+        // If we get here without throwing, the API key is valid
+        console.log('✅ API key validation successful');
+        return 'active';
+        
+    } catch (error: any) {
+        console.error(`API key validation error: ${error.message}`);
+        
+        // Check for specific error patterns
+        const errorMessage = error.message || '';
+        
+        if (errorMessage.includes('API key not valid') || 
+            errorMessage.includes('invalid') ||
+            errorMessage.includes('INVALID_ARGUMENT') ||
+            errorMessage.includes('403')) {
+            console.log('❌ API key is invalid');
+            return 'invalid';
+        }
+        
+        if (errorMessage.includes('429') || 
+            errorMessage.includes('quota') ||
+            errorMessage.includes('exceeded') ||
+            errorMessage.includes('RESOURCE_EXHAUSTED')) {
+            console.log('❌ API key quota exhausted');
+            return 'exhausted';
+        }
+        
+        // For other errors, treat as invalid
+        console.log(`❌ API key validation failed: ${errorMessage}`);
+        return 'invalid';
+    }
+}
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
