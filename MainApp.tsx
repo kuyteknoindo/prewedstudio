@@ -423,7 +423,7 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
     const handleStop = () => {
         isGenerationRunningRef.current = false;
         setStatusText("Menghentikan proses...");
-    }
+    };
     
     const handleDownloadZip = async (aspectRatio?: number) => {
         setModals(prev => ({...prev, download: false}));
@@ -444,3 +444,4 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
         const content = await zip.generateAsync({ type: "blob" });
         saveAs(content, generateRandomFilename('prewedding', 'zip'));
     };
+};
