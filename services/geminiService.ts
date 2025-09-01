@@ -230,16 +230,99 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyStatus> {
     if (!apiKey || apiKey.trim() === '') {
         return 'invalid';
     }
+    
+    console.log(`🔍 Validating API key: ${apiKey.slice(0, 8)}...`);
+    
     try {
         const genAI = new GoogleGenAI(apiKey);
         const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
         
-        // Use a minimal test request
-        const result = await model.generateContent('test');
+        // Use a minimal test request with proper configuration
+        const result = await model.generateContent({
+            contents: [{
+                parts: [{ text: 'Hello' }]
+            }],
+            generationConfig: {
+                maxOutputTokens: 5,
+                temperature: 0
+            }
+        });
+        
         const response = await result.response;
         
-        // If we get here without throwing, the API key is valid
-        console.log('✅ API key validation successful');
+        // Check if we got a valid response
+        if (response && (response.candidates || response.text)) {
+            console.log('✅ API key validation successful - key is ACTIVE');
+            return 'active';
+        } else {
+            console.log('⚠️ API key validation got empty response');
+            return 'invalid';
+        }
+        
+    } catch (error: any) {
+        console.error(`❌ API key validation error:`, error);
+        
+        // More detailed error checking
+        const errorMessage = error.message || error.toString() || '';
+        const errorStatus = error.status || error.code || '';
+        
+        console.log(`Error details - Message: "${errorMessage}", Status: "${errorStatus}"`);
+        
+        // Check for quota exhaustion first
+        if (errorMessage.includes('429') || 
+            errorMessage.includes('quota') ||
+            errorMessage.includes('exceeded') ||
+            errorMessage.includes('RESOURCE_EXHAUSTED') ||
+            errorStatus === 429) {
+            console.log('❌ API key quota exhausted');
+            return 'exhausted';
+        }
+        
+        // Check for invalid API key
+        if (errorMessage.includes('API key not valid') || 
+            errorMessage.includes('invalid') ||
+            errorMessage.includes('INVALID_ARGUMENT') ||
+            errorMessage.includes('403') ||
+            errorStatus === 403 ||
+            errorStatus === 400) {
+            console.log('❌ API key is invalid');
+            return 'invalid';
+        }
+        
+        // For network or other errors, try one more time with direct fetch
+        try {
+            console.log('🔄 Retrying with direct fetch...');
+            const fetchResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: 'test' }]
+                    }],
+                    generationConfig: {
+                        maxOutputTokens: 5
+                    }
+                })
+            });
+            
+            if (fetchResponse.ok) {
+                console.log('✅ Direct fetch validation successful - key is ACTIVE');
+                return 'active';
+            } else if (fetchResponse.status === 429) {
+                console.log('❌ Direct fetch: quota exhausted');
+                return 'exhausted';
+            } else {
+                console.log(`❌ Direct fetch failed: ${fetchResponse.status}`);
+                return 'invalid';
+            }
+        } catch (fetchError) {
+            console.log('❌ Direct fetch also failed:', fetchError);
+            return 'invalid';
+        }
+    }
+}
         return 'active';
         
     } catch (error: any) {
