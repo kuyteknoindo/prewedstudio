@@ -594,8 +594,19 @@ ${prompt && isReferenceTabActive ? `- User Notes: ${prompt}\n` : ''}- Negative P
                                 </div>
                             )}
 
-                            {/* Tutorial Link */}
-                            <div className="pt-4 border-t border-slate-200">
+                                <h3 className="text-lg font-semibold text-red-600 mb-2">
+                                    {modals.error.includes('quota') ? 'Quota Limit Reached' : 'Error'}
+                                </h3>
+                                <p className="text-gray-700 mb-4">{modals.error}</p>
+                                {modals.error.includes('quota') && (
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                                        <p className="text-sm text-yellow-800">
+                                            <strong>Solusi:</strong><br/>
+                                            1. Tambahkan API key baru melalui tombol "Manage API Keys"<br/>
+                                            2. Atau tunggu 24 jam untuk quota reset
+                                        </p>
+                                    </div>
+                                )}
                                 <button
                                     onClick={() => setIsKeyTutorialOpen(true)}
                                     className="text-blue-600 hover:text-blue-700 text-sm underline"
