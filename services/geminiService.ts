@@ -1,5 +1,3 @@
-
-
 import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/genai";
 import { ApiKeyStatus } from "../types";
 

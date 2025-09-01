@@ -163,8 +163,73 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
                     }
                 };
             } else {
+                const imageRequestOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }],
+                        generationConfig: {
+                            responseModalities: ['IMAGE', 'TEXT']
+                        }
+                    })
+                };
+                
                 url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
-                body = {
+                
+                const response = await fetch(url, imageRequestOptions);
+                
+                setImageTestResult(prev => prev + `\n\nResponse Status: ${response.status}`);
+                setImageTestResult(prev => prev + `\nResponse Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}`);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    setImageTestResult(prev => prev + '\n\nError Response:\n' + JSON.stringify(errorData, null, 2));
+                    
+                    if (response.status === 429) {
+                        setImageTestResult(prev => prev + '\n\n❌ QUOTA EXHAUSTED - API key has reached its limit for image generation');
+                    } else if (response.status === 400) {
+                        setImageTestResult(prev => prev + '\n\n❌ BAD REQUEST - Invalid request format or model not supported');
+                    } else if (response.status === 403) {
+                        setImageTestResult(prev => prev + '\n\n❌ FORBIDDEN - API key invalid or insufficient permissions');
+                    } else {
+                        setImageTestResult(prev => prev + `\n\n❌ ERROR ${response.status}`);
+                    }
+                    return;
+                }
+
+                const data = await response.json();
+                setImageTestResult(prev => prev + '\n\nSuccess Response:\n' + JSON.stringify(data, null, 2));
+                
+                const candidate = data.candidates?.[0];
+                if (candidate?.content?.parts) {
+                    const imagePart = candidate.content.parts.find((part: any) => 
+                        part.inlineData && part.inlineData.mimeType?.startsWith('image/')
+                    );
+                    
+                    if (imagePart) {
+                        setImageTestResult(prev => prev + '\n\n✅ IMAGE GENERATION SUCCESS!');
+                    } else {
+                        setImageTestResult(prev => prev + '\n\n⚠️ NO IMAGE GENERATED');
+                    }
+                } else {
+                    setImageTestResult(prev => prev + '\n\n⚠️ UNEXPECTED RESPONSE FORMAT');
+                }
+                return;
+            }
+            
+            const imageRequestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body)
+            };
+            
+            const response = await fetch(url, imageRequestOptions);
                     contents: [{
                         parts: [{ text: prompt }]
                     }],
