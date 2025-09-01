@@ -226,26 +226,17 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(body)
-            };
-            
-            const response = await fetch(url, imageRequestOptions);
+                body: JSON.stringify({
                     contents: [{
                         parts: [{ text: prompt }]
                     }],
                     generationConfig: {
                         responseModalities: ['IMAGE', 'TEXT']
                     }
-                };
-            }
+                })
+            };
             
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body)
-            });
+            const response = await fetch(url, imageRequestOptions);
 
             setImageTestResult(prev => prev + `\n\nResponse Status: ${response.status}`);
             setImageTestResult(prev => prev + `\nResponse Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}`);
@@ -333,181 +324,181 @@ const ApiKeyDebug: React.FC<ApiKeyDebugProps> = ({ userApiKeys, onClose }) => {
                     </button>
                 </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left Column - API Key Testing */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-800">API Key Testing</h3>
-                    
-                <button 
-                    onClick={checkStoredApiKeys}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                    Refresh Debug Info
-                </button>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Left Column - API Key Testing */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-800">API Key Testing</h3>
+                        
+                        <button 
+                            onClick={checkStoredApiKeys}
+                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                            Refresh Debug Info
+                        </button>
 
-                {debugInfo && (
-                    <div className="bg-gray-100 p-4 rounded">
-                        <h3 className="font-semibold mb-2">Stored Information:</h3>
-                        <pre className="text-sm overflow-auto">
-                            {JSON.stringify(debugInfo, null, 2)}
-                        </pre>
-                    </div>
-                )}
+                        {debugInfo && (
+                            <div className="bg-gray-100 p-4 rounded">
+                                <h3 className="font-semibold mb-2">Stored Information:</h3>
+                                <pre className="text-sm overflow-auto">
+                                    {JSON.stringify(debugInfo, null, 2)}
+                                </pre>
+                            </div>
+                        )}
 
-                <div className="space-y-2">
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Test API Key:
-                        </label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={testApiKeyInput}
-                                onChange={(e) => setTestApiKeyInput(e.target.value)}
-                                placeholder="Masukkan API key untuk ditest..."
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                        <div className="space-y-2">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Test API Key:
+                                </label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={testApiKeyInput}
+                                        onChange={(e) => setTestApiKeyInput(e.target.value)}
+                                        placeholder="Masukkan API key untuk ditest..."
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <button 
+                                        onClick={() => testApiKey(testApiKeyInput)}
+                                        disabled={isLoading || !testApiKeyInput.trim()}
+                                        className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 disabled:opacity-50"
+                                    >
+                                        {isLoading ? 'Testing...' : 'Test Key'}
+                                    </button>
+                                    <button 
+                                        onClick={addApiKeyToApp}
+                                        disabled={!testApiKeyInput.trim()}
+                                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50"
+                                    >
+                                        Add to App
+                                    </button>
+                                </div>
+                            </div>
+
                             <button 
-                                onClick={() => testApiKey(testApiKeyInput)}
-                                disabled={isLoading || !testApiKeyInput.trim()}
-                                className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 disabled:opacity-50"
-                            >
-                                {isLoading ? 'Testing...' : 'Test Key'}
-                            </button>
-                            <button 
-                                onClick={addApiKeyToApp}
-                                disabled={!testApiKeyInput.trim()}
+                                onClick={testAllStoredKeys}
+                                disabled={isLoading}
                                 className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50"
                             >
-                                Add to App
+                                {isLoading ? 'Testing...' : 'Test All Stored API Keys'}
                             </button>
                         </div>
-                    </div>
 
-                    <button 
-                        onClick={testAllStoredKeys}
-                        disabled={isLoading}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50"
-                    >
-                        {isLoading ? 'Testing...' : 'Test All Stored API Keys'}
-                    </button>
-                </div>
+                        {testResult && (
+                            <div className="bg-yellow-100 p-4 rounded">
+                                <h3 className="font-semibold mb-2">Test Results:</h3>
+                                <pre className="text-sm whitespace-pre-wrap">{testResult}</pre>
+                            </div>
+                        )}
 
-                {testResult && (
-                    <div className="bg-yellow-100 p-4 rounded">
-                        <h3 className="font-semibold mb-2">Test Results:</h3>
-                        <pre className="text-sm whitespace-pre-wrap">{testResult}</pre>
-                    </div>
-                )}
-
-                <div className="text-sm text-gray-600">
-                    <h3 className="font-semibold mb-2">Kemungkinan Penyebab Error:</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                        <li>API key sudah mencapai limit harian (meskipun baru)</li>
-                        <li>API key tidak tersimpan dengan benar di aplikasi</li>
-                        <li>Model yang digunakan memiliki limit yang berbeda</li>
-                        <li>Terlalu banyak request dalam waktu singkat</li>
-                    </ul>
-                </div>
-                </div>
-
-                {/* Right Column - Image Generation Testing */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-800">Image Generation Testing</h3>
-                    
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Test Prompt:
-                        </label>
-                        <textarea
-                            value={testImagePrompt}
-                            onChange={(e) => setTestImagePrompt(e.target.value)}
-                            placeholder="Enter prompt for image generation test..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-none"
-                        />
-                    </div>
-
-                    <div className="flex gap-2">
-                        <button 
-                            onClick={() => testImageGeneration(testApiKeyInput, testImagePrompt)}
-                            disabled={isImageTesting || !testApiKeyInput.trim() || !testImagePrompt.trim()}
-                            className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 disabled:opacity-50"
-                        >
-                            {isImageTesting ? 'Testing...' : 'Test Image Gen'}
-                        </button>
-                        <button 
-                            onClick={testImageWithStoredKey}
-                            disabled={isImageTesting || !testImagePrompt.trim()}
-                            className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:opacity-50"
-                        >
-                            {isImageTesting ? 'Testing...' : 'Test with Stored Key'}
-                        </button>
-                    </div>
-
-                    {imageTestResult && (
-                        <div className="bg-blue-100 p-4 rounded">
-                            <h3 className="font-semibold mb-2">Image Generation Results:</h3>
-                            <pre className="text-sm whitespace-pre-wrap">{imageTestResult}</pre>
+                        <div className="text-sm text-gray-600">
+                            <h3 className="font-semibold mb-2">Kemungkinan Penyebab Error:</h3>
+                            <ul className="list-disc list-inside space-y-1">
+                                <li>API key sudah mencapai limit harian (meskipun baru)</li>
+                                <li>API key tidak tersimpan dengan benar di aplikasi</li>
+                                <li>Model yang digunakan memiliki limit yang berbeda</li>
+                                <li>Terlalu banyak request dalam waktu singkat</li>
+                            </ul>
                         </div>
-                    )}
+                    </div>
 
-                    <div className="bg-gray-50 p-4 rounded">
-                        <h4 className="font-semibold mb-2 text-sm">cURL Test Command:</h4>
-                        <div className="bg-gray-800 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto">
-                            <div>curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=YOUR_API_KEY" \</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-H "Content-Type: application/json" \</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-d '{`{`}</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"contents": [{`{`}</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"parts": [</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`{ "text": "${testImagePrompt}" }`}</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}]</div>
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}'</div>
+                    {/* Right Column - Image Generation Testing */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-800">Image Generation Testing</h3>
+                        
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                                Test Prompt:
+                            </label>
+                            <textarea
+                                value={testImagePrompt}
+                                onChange={(e) => setTestImagePrompt(e.target.value)}
+                                placeholder="Enter prompt for image generation test..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-none"
+                            />
                         </div>
-                        <p className="text-xs text-gray-600 mt-2">
-                            Replace YOUR_API_KEY with your actual API key to test manually. This uses the gemini-pro-vision model as you suggested.
-                        </p>
-                    </div>
 
-                    <div className="space-y-2">
-                        <button 
-                            onClick={() => testImageGeneration(testApiKeyInput, testImagePrompt, 'gemini-pro-vision')}
-                            disabled={isImageTesting || !testApiKeyInput.trim() || !testImagePrompt.trim()}
-                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:opacity-50 w-full"
-                        >
-                            {isImageTesting ? 'Testing...' : 'Test with gemini-pro-vision'}
-                        </button>
-                        <button 
-                            onClick={() => testImageGeneration(testApiKeyInput, testImagePrompt, 'imagen-4.0-generate-001')}
-                            disabled={isImageTesting || !testApiKeyInput.trim() || !testImagePrompt.trim()}
-                            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:opacity-50 w-full"
-                        >
-                            {isImageTesting ? 'Testing...' : 'Test with imagen-4.0-generate-001'}
-                        </button>
-                    </div>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => testImageGeneration(testApiKeyInput, testImagePrompt)}
+                                disabled={isImageTesting || !testApiKeyInput.trim() || !testImagePrompt.trim()}
+                                className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 disabled:opacity-50"
+                            >
+                                {isImageTesting ? 'Testing...' : 'Test Image Gen'}
+                            </button>
+                            <button 
+                                onClick={testImageWithStoredKey}
+                                disabled={isImageTesting || !testImagePrompt.trim()}
+                                className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:opacity-50"
+                            >
+                                {isImageTesting ? 'Testing...' : 'Test with Stored Key'}
+                            </button>
+                        </div>
 
-                    <div className="text-sm text-gray-600">
-                        <h4 className="font-semibold mb-2">Image Generation Troubleshooting:</h4>
-                        <ul className="list-disc list-inside space-y-1">
-                            <li><strong>Quota Terpisah:</strong> Text dan Image generation memiliki quota yang berbeda</li>
-                            <li><strong>Quota Lebih Besar:</strong> Image generation menggunakan quota lebih banyak per request</li>
-                            <li><strong>API Key Baru:</strong> Meskipun API key baru, quota image mungkin sudah habis dari test sebelumnya</li>
-                            <li><strong>Model Berbeda:</strong> gemini-2.5-flash-image-preview vs gemini-2.5-flash memiliki limit berbeda</li>
-                            <li><strong>Safety Filter:</strong> Beberapa prompt mungkin diblokir oleh filter keamanan</li>
-                            <li><strong>Response Format:</strong> Response harus mengandung inlineData dengan image bytes</li>
-                            <li><strong>Solusi:</strong> Tunggu 24 jam atau gunakan API key berbeda untuk image generation</li>
-                        </ul>
-                    </div>
+                        {imageTestResult && (
+                            <div className="bg-blue-100 p-4 rounded">
+                                <h3 className="font-semibold mb-2">Image Generation Results:</h3>
+                                <pre className="text-sm whitespace-pre-wrap">{imageTestResult}</pre>
+                            </div>
+                        )}
 
-                    <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
-                        <h4 className="font-semibold text-yellow-800 mb-1">💡 Penjelasan Status:</h4>
-                        <p className="text-sm text-yellow-700">
-                            API key Anda <strong>VALID</strong> untuk text generation tapi <strong>QUOTA HABIS</strong> untuk image generation. 
-                            Ini normal untuk API key baru karena quota image generation lebih terbatas.
-                        </p>
+                        <div className="bg-gray-50 p-4 rounded">
+                            <h4 className="font-semibold mb-2 text-sm">cURL Test Command:</h4>
+                            <div className="bg-gray-800 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto">
+                                <div>curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=YOUR_API_KEY" \</div>
+                                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-H "Content-Type: application/json" \</div>
+                                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-d '{`{`}</div>
+                                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"contents": [{`{`}</div>
+                                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"parts": [</div>
+                                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`{ "text": "${testImagePrompt}" }`}</div>
+                                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]</div>
+                                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}]</div>
+                                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`}`}'</div>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-2">
+                                Replace YOUR_API_KEY with your actual API key to test manually. This uses the gemini-pro-vision model as you suggested.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <button 
+                                onClick={() => testImageGeneration(testApiKeyInput, testImagePrompt, 'gemini-pro-vision')}
+                                disabled={isImageTesting || !testApiKeyInput.trim() || !testImagePrompt.trim()}
+                                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:opacity-50 w-full"
+                            >
+                                {isImageTesting ? 'Testing...' : 'Test with gemini-pro-vision'}
+                            </button>
+                            <button 
+                                onClick={() => testImageGeneration(testApiKeyInput, testImagePrompt, 'imagen-4.0-generate-001')}
+                                disabled={isImageTesting || !testApiKeyInput.trim() || !testImagePrompt.trim()}
+                                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:opacity-50 w-full"
+                            >
+                                {isImageTesting ? 'Testing...' : 'Test with imagen-4.0-generate-001'}
+                            </button>
+                        </div>
+
+                        <div className="text-sm text-gray-600">
+                            <h4 className="font-semibold mb-2">Image Generation Troubleshooting:</h4>
+                            <ul className="list-disc list-inside space-y-1">
+                                <li><strong>Quota Terpisah:</strong> Text dan Image generation memiliki quota yang berbeda</li>
+                                <li><strong>Quota Lebih Besar:</strong> Image generation menggunakan quota lebih banyak per request</li>
+                                <li><strong>API Key Baru:</strong> Meskipun API key baru, quota image mungkin sudah habis dari test sebelumnya</li>
+                                <li><strong>Model Berbeda:</strong> gemini-2.5-flash-image-preview vs gemini-2.5-flash memiliki limit berbeda</li>
+                                <li><strong>Safety Filter:</strong> Beberapa prompt mungkin diblokir oleh filter keamanan</li>
+                                <li><strong>Response Format:</strong> Response harus mengandung inlineData dengan image bytes</li>
+                                <li><strong>Solusi:</strong> Tunggu 24 jam atau gunakan API key berbeda untuk image generation</li>
+                            </ul>
+                        </div>
+
+                        <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
+                            <h4 className="font-semibold text-yellow-800 mb-1">💡 Penjelasan Status:</h4>
+                            <p className="text-sm text-yellow-700">
+                                API key Anda <strong>VALID</strong> untuk text generation tapi <strong>QUOTA HABIS</strong> untuk image generation. 
+                                Ini normal untuk API key baru karena quota image generation lebih terbatas.
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
     );
